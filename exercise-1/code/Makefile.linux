@@ -1,0 +1,20 @@
+
+EXE=exercise1_linux
+SOURCES = $(wildcard *.cpp)
+OBJECTS = $(patsubst %.cpp,%.o,$(SOURCES))
+
+LDFLAGS    = -lGL -lglut
+CFLAGS     = -c -O2 -DLINUXVERSION=1
+
+
+default: $(EXE)
+
+$(EXE): $(OBJECTS)
+	$(CXX) -o $(EXE) $(LDFLAGS) $(OBJECTS)
+
+%.o : %.cpp
+	$(CXX) $(CFLAGS) -o $@ $<
+
+clean:
+	 rm -f *.o $(EXE)
+

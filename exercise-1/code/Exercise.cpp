@@ -48,18 +48,31 @@ void AdvanceTimeStep1(double stiffness, double mass, double damping, double leng
 }
 
 double CalculateForce(double p1, double p2, double length, double stiffness) {
-	return stiffness*((p1-p2)-length) - g;
+	return -stiffness*((p2-p1)-length) - g;
 }
 
 Vec2 CalculateForce2D(Vec2& p1, Vec2& p2, double L, double stiffness) {
 	Vec2 p = p1-p2;
-	return stiffness * (p.length() - L) * ((1/p.length()) * p);
+	return -stiffness * (p.length() - L) * ((1/p.length()) * p);
 }
 
 Vec2 CalculateGroundForce(Vec2& p, double stiffness) {
 	Vec2 n = Vec2(0, 1);
 	double d = p.y + 1;
-	return stiffness * d * n;
+	return -stiffness * d * n;
+}
+
+Vec2 Calculate2dCollForce(Vec2& p, Vec2& v, Vec2& p1, Vec2& p2, double L, double k, double d) {
+	Vec2 force_1 = CalculateForce2D(p, p1, L, k);
+	force_1 += CalculateForce2D(p, p2, L, k);
+	force_1 -= Vec2(0, g);
+	force_1 -= d*v;
+
+	// add ground force if necessary
+	if (p.y <= -1) {
+		force_1 += CalculateGroundForce(p, k);
+	}
+	return force_1;
 }
 
 // Exercise 3
@@ -67,31 +80,15 @@ Vec2 CalculateGroundForce(Vec2& p, double stiffness) {
 void AdvanceTimeStep3(double k, double m, double d, double L, double dt,
 	Vec2& p1, Vec2& v1, Vec2& p2, Vec2& v2, Vec2& p3, Vec2& v3)
 {
+	Vec2 force_1 = Calculate2dCollForce(p1, v1, p2, p3, L, k ,d);
+	Vec2 force_2 = Calculate2dCollForce(p2, v2, p1, p3, L, k, d);
+	Vec2 force_3 = Calculate2dCollForce(p3, v3, p1, p2, L, k, d);
 
-	Vec2 force_1 = CalculateForce2D(p1, p2, L, k);
-	force_1 += CalculateForce2D(p1, p3, L, k);
-	force_1 -= Vec2(0, g);
-	if (p1.y <= -1) {
-		force_1 += CalculateGroundForce(p1, 200);
-	}
-	Vec2 initial_a1 = (1/m) * (force_1 - d*v1);
+	Vec2 initial_a1 = (1/m) * (force_1);
+	Vec2 initial_a2 = (1/m) * (force_2);
+	Vec2 initial_a3 = (1 / m) * (force_3);
 
-	Vec2 force_2 = CalculateForce2D(p2, p1, L, k);
-	force_2 += CalculateForce2D(p2, p3, L, k);
-	force_2 -= Vec2(0, g);
-	if (p2.y <= -1) {
-		force_2 += CalculateGroundForce(p2, 200);
-	}
-	Vec2 initial_a2 = (1/m) * (force_2 - d*v2);
-
-	Vec2 force_3 = CalculateForce2D(p3, p1, L, k);
-	force_3 += CalculateForce2D(p3, p2, L, k);
-	force_3 -= Vec2(0, g);
-	if (p3.y <= -1) {
-		force_3 += CalculateGroundForce(p3, 200);
-	}
-	Vec2 initial_a3 = (1/m) * (force_3 - d*v3);
-
+	// Euler
 	p1 = p1 + dt*v1;
 	v1 = v1 + dt*initial_a1;
 
@@ -100,9 +97,4 @@ void AdvanceTimeStep3(double k, double m, double d, double L, double dt,
 
 	p3 = p3 + dt*v3;
 	v3 = v3 + dt*initial_a3;
-
-	printf ("p1: %f/%f\n", p1.x, p1.y);
-	printf ("p2: %f/%f\n", p2.x, p2.y);
-	printf ("p3: %f/%f\n", p3.x, p3.y);
-	//p1 += Vec2(1,1);
 }

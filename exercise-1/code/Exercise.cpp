@@ -60,7 +60,7 @@ void AdvanceTimeStep1(double stiffness, double mass, double damping, double leng
 	}
 }
 
-double CalculateForce(double p1, double p2, double length, double stiffness) {
+double CalculateForce(double p1, double p2, double length, double stiffness) {	
 	return stiffness*((p1-p2)-length);
 }
 
@@ -78,7 +78,6 @@ Vec2 CalculateGroundForce(Vec2& p, double stiffness) {
 Vec2 Calculate2dCollForce(Vec2& p, Vec2& v, Vec2& p1, Vec2& p2, double L, double k, double d) {
 	Vec2 force_1 = CalculateForce2D(p, p1, L, k);
 	force_1 += CalculateForce2D(p, p2, L, k);
-	force_1 -= Vec2(0, g);
 	force_1 -= d*v;
 
 	// add ground force if necessary
@@ -97,9 +96,9 @@ void AdvanceTimeStep3(double k, double m, double d, double L, double dt,
 	Vec2 force_2 = Calculate2dCollForce(p2, v2, p1, p3, L, k, d);
 	Vec2 force_3 = Calculate2dCollForce(p3, v3, p1, p2, L, k, d);
 
-	Vec2 initial_a1 = (1/m) * (force_1);
-	Vec2 initial_a2 = (1/m) * (force_2);
-	Vec2 initial_a3 = (1 / m) * (force_3);
+	Vec2 initial_a1 = (1/m) * (force_1) - Vec2(0, g);
+	Vec2 initial_a2 = (1/m) * (force_2) - Vec2(0, g);
+	Vec2 initial_a3 = (1/m) * (force_3) - Vec2(0, g);
 
 	// Symplectic Euler
 	v1 = v1 + dt*initial_a1;  p1 = p1 + dt*v1;

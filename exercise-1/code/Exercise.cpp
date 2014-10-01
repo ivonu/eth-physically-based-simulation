@@ -13,8 +13,8 @@ double CalculateForce(double p1, double p2, double length, double stiffness);
 // hanging mass point
 void AdvanceTimeStep1(double stiffness, double mass, double damping, double length, double time, int method, double p1, double v1, double& p2, double& v2)
 {
-	double force = CalculateForce(p1, p2, length, stiffness);
-	double initial_a = (force - damping*v2) / mass;
+	double force = CalculateForce(p1, p2, length, stiffness); 
+	double initial_a = (force - damping*v2) / mass - g;
 
 	switch (method) {
 		case Scene::EULER:
@@ -61,7 +61,7 @@ void AdvanceTimeStep1(double stiffness, double mass, double damping, double leng
 }
 
 double CalculateForce(double p1, double p2, double length, double stiffness) {
-	return stiffness*((p1-p2)-length) - g;
+	return stiffness*((p1-p2)-length);
 }
 
 Vec2 CalculateForce2D(Vec2& p1, Vec2& p2, double L, double stiffness) {

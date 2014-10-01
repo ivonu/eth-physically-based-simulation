@@ -39,6 +39,8 @@ void AdvanceTimeStep1(double stiffness, double mass, double damping, double leng
 			double c1 = (mass*g) / stiffness;
 			double c2 = (-alpha / beta) * c1;
 			p2 = c1*exp(alpha*time)*cos(beta*time) + c2*exp(alpha*time)*sin(beta*time) - length - (mass*g) / stiffness;
+			v2 = alpha*c1*exp(alpha*time)*cos(beta*time) - beta*c1*exp(alpha*time)*sin(beta*time)
+				+ alpha*c2*exp(alpha*time)*sin(beta*time) + beta*c2*exp(alpha*time)*cos(beta*time);
 			break;
 		}
 

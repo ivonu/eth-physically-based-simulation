@@ -1,0 +1,18 @@
+==============================
+2.1 Analytic solution
+==============================
+
+TODO: Insert formulas
+
+==============================
+2.2 Error convergence analysis
+==============================
+
+TODO
+
+==============================
+2.3 Stability analysis
+==============================
+
+Euler and Midpoint methods are getting unstable with higher step sizes (0.0008 for euler and 0.0256 for midpoint), while the symplectic remains stable.
+With damping coefficient 1.9 all the methods are stable.

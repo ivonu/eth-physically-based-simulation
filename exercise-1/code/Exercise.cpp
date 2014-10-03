@@ -29,7 +29,8 @@ void AdvanceTimeStep1(double stiffness, double mass, double damping, double leng
 			double mid_p_v = v2 + (time / 2) * initial_a;
 			p2 = p2 + time*mid_p_v;
 		// speed
-			double mid_p_a = (CalculateForce(p1, mid_p, length, stiffness) - damping*mid_p_v) / mass;
+			double mid_force = CalculateForce(p1, mid_p, length, stiffness);
+			double mid_p_a = (mid_force - damping*mid_p_v) / mass - g;
 			v2 = v2 + time * mid_p_a;
 			break;
 		}

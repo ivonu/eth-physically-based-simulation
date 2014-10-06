@@ -53,6 +53,7 @@ void AdvanceTimeStep1(double stiffness, double mass, double damping, double leng
 		}
 		case Scene::BACK_EULER: {
 			// see bottom of page for eq doc
+			force = force - mass*g; // here the force accounts for gravity as well
 			v2 = (v2 + (time / mass) * (force - damping*v2)) / (1 - (time / mass) *(time*force + damping ) );
 			p2 = p2 + time*v2;
 			break;

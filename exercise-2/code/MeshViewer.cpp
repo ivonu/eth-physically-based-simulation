@@ -6,6 +6,7 @@
 /*=====================================================================================*/
 
 #include <stdlib.h>
+#include <algorithm>
 #include "SimpleFEMDefs.h"
 #include "MeshViewer.h"
 #include "FEMMesh.h"

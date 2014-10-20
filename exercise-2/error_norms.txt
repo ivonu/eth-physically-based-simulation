@@ -1,0 +1,13 @@
+---Laplace error norms---
+3 Grid:  0.004237
+5 Grid:  0.001499
+8 Grid:  0.000528
+16 Grid: 0.000118
+32 Grid: 0.000026
+
+--Poisson error norms---
+3 Grid:  0.042879
+5 Grid:  0.014556
+8 Grid:  0.005080
+16 Grid: 0.001135
+32 Grid: 0.000273

@@ -4,7 +4,7 @@
 #include <numeric>
 
 // size of grid
-static const size_t GRIDSIZE = 4;
+static const size_t GRIDSIZE = 32;
 // use a graded mesh, or a regular mesh
 static const bool gradedMesh = false;
 // laplace or poisson problem?
@@ -135,6 +135,7 @@ void SimpleFEM::ComputeRHS(const FEMMesh &mesh,  vector<float> &rhs)
 
 		Vector2 barycenter = (node_1 + node_2 + node_3) / 3;
 
+		// approximate Ni (i=1,2,3) at the barycenters
 		Vector2 n2_n3_mid((node_2 + node_3) / 2); float n1_h = (node_1 - n2_n3_mid).length(); float n1_grad_h = (barycenter - n2_n3_mid).length();
 		float n1_scale = n1_grad_h / n1_h;
 
@@ -146,6 +147,7 @@ void SimpleFEM::ComputeRHS(const FEMMesh &mesh,  vector<float> &rhs)
 
 		double barycenter_x = barycenter[0]; double barycenter_y = barycenter[1]; double f_val = eval_f(barycenter_x, barycenter_y);
 
+		// use the quadrature rule for each node in an element
 		rhs[elem.GetGlobalNodeForElementNode(0)] += area * (f_val * n1_scale);
 		rhs[elem.GetGlobalNodeForElementNode(1)] += area * (f_val * n2_scale);
 		rhs[elem.GetGlobalNodeForElementNode(2)] += area * (f_val * n3_scale);

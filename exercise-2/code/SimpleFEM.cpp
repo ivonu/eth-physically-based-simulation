@@ -1,17 +1,18 @@
 #include "SimpleFEMDefs.h"
 #include "SimpleFEM.h"
 #include "MeshViewer.h"
+#include <numeric>
 
 // size of grid
-static const size_t GRIDSIZE = 5;
+static const size_t GRIDSIZE = 4;
 // use a graded mesh, or a regular mesh
 static const bool gradedMesh = false;
 // laplace or poisson problem?
-static const bool laplaceProblem = true;
+static const bool laplaceProblem = false;
 // plot solution or error?
 static bool vizSolution = true;
 // display debug information?
-static const bool debugOut = true;
+static const bool debugOut = false;
 
 
 float eval_u(float x, float y)
@@ -132,25 +133,35 @@ void SimpleFEM::ComputeRHS(const FEMMesh &mesh,  vector<float> &rhs)
 		Vector2 middlePt((node_1[0] + node_2[0]) / 2, (node_1[1] + node_2[1]) / 2); double h = Vector2(node_3 - middlePt).length();
 		double area = (node_1 - node_2).length() * (h / 2);
 
-		Vector2 n1_grad; elem.computeSingleBasisDerivGlobalLES(elem.GetGlobalNodeForElementNode(0), n1_grad, &mesh);
-		Vector2 n2_grad; elem.computeSingleBasisDerivGlobalLES(elem.GetGlobalNodeForElementNode(1), n2_grad, &mesh);
-		Vector2 n3_grad; elem.computeSingleBasisDerivGlobalLES(elem.GetGlobalNodeForElementNode(2), n3_grad, &mesh);
+		Vector2 barycenter = (node_1 + node_2 + node_3) / 3;
 
-		double barycenter_x = (node_1[0] + node_2[0] + node_3[0]) / 3;
-		double barycenter_y = (node_1[1] + node_2[1] + node_3[1]) / 3;
-		double f_val = eval_f(barycenter_x, barycenter_y);
+		Vector2 n2_n3_mid((node_2 + node_3) / 2); float n1_h = (node_1 - n2_n3_mid).length(); float n1_grad_h = (barycenter - n2_n3_mid).length();
+		float n1_scale = n1_grad_h / n1_h;
 
-		rhs[elem.GetGlobalNodeForElementNode(0)] += area * (f_val * n1_grad[0] + f_val * n1_grad[1]);
-		rhs[elem.GetGlobalNodeForElementNode(1)] += area * (f_val * n2_grad[0] + f_val * n2_grad[1]);
-		rhs[elem.GetGlobalNodeForElementNode(2)] += area * (f_val * n3_grad[0] + f_val * n3_grad[1]);
+		Vector2 n1_n3_mid((node_1 + node_3) / 2); float n2_h = (node_2 - n1_n3_mid).length(); float n2_grad_h = (barycenter - n1_n3_mid).length();
+		float n2_scale = n2_grad_h / n2_h;
+
+		Vector2 n1_n2_mid((node_1 + node_2) / 2); float n3_h = (node_3 - n1_n2_mid).length(); float n3_grad_h = (barycenter - n1_n2_mid).length();
+		float n3_scale = n3_grad_h / n3_h;
+
+		double barycenter_x = barycenter[0]; double barycenter_y = barycenter[1]; double f_val = eval_f(barycenter_x, barycenter_y);
+
+		rhs[elem.GetGlobalNodeForElementNode(0)] += area * (f_val * n1_scale);
+		rhs[elem.GetGlobalNodeForElementNode(1)] += area * (f_val * n2_scale);
+		rhs[elem.GetGlobalNodeForElementNode(2)] += area * (f_val * n3_scale);
 	}
 }
 
 void SimpleFEM::computeError(FEMMesh &mesh,  const vector<float> &sol_num, vector<float> &verror, float& err_nrm )
 {
-	//Task 5 starts here
+	unsigned int nodes_num = mesh.GetNumNodes();
+	for (unsigned int i = 0; i < nodes_num; i++) {
+		Vector2 node = mesh.GetNodePosition(i);
+		verror[i] = fabs(sol_num[i] - eval_u(node[0], node[1]));
+	}
 	
-	//Task 5 ends here
+	vector<float> mat_times_v(nodes_num); mesh.getMat().MultVector(verror, mat_times_v);
+	err_nrm = sqrt(inner_product(mat_times_v.begin(), mat_times_v.end(), verror.begin(), 0.f));
 }
 
 int main(int argc, char *argv[])

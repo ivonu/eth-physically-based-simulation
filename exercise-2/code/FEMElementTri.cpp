@@ -10,9 +10,12 @@
 #include "FEMElementTri.h"
 #include "FEMMesh.h"
 
+#define computeSingleBasisDerivGlobalVar computeSingleBasisDerivGlobalLES
+
 // TASK 3
 void FEMElementTri::Assemble(FEMMesh *pMesh) const
 {
+	
 	Vector2 node_1 = pMesh->GetNodePosition(m_nodes[0]);
 	Vector2 node_2 = pMesh->GetNodePosition(m_nodes[1]);
 	Vector2 node_3 = pMesh->GetNodePosition(m_nodes[2]);
@@ -20,18 +23,17 @@ void FEMElementTri::Assemble(FEMMesh *pMesh) const
 	Vector2 middlePt((node_1[0] + node_2[0]) / 2, (node_1[1] + node_2[1]) / 2); double h = Vector2(node_3 - middlePt).length();
 	float area = (node_1 - node_2).length() * (h/2);
 
-	Vector2 node_1_grad; computeSingleBasisDerivGlobalLES(m_nodes[0], node_1_grad, pMesh);
-	Vector2 node_2_grad; computeSingleBasisDerivGlobalLES(m_nodes[1], node_2_grad, pMesh);
-	Vector2 node_3_grad; computeSingleBasisDerivGlobalLES(m_nodes[2], node_3_grad, pMesh);
+	Vector2 node_1_grad; computeSingleBasisDerivGlobalVar(m_nodes[0], node_1_grad, pMesh);
+	Vector2 node_2_grad; computeSingleBasisDerivGlobalVar(m_nodes[1], node_2_grad, pMesh);
+	Vector2 node_3_grad; computeSingleBasisDerivGlobalVar(m_nodes[2], node_3_grad, pMesh);
 
-	float stiffval1_2 = area*(node_1_grad[0] * node_2_grad[0] + node_1_grad[1] * node_2_grad[1]);
-	pMesh->AddToStiffnessMatrix(max(m_nodes[0], m_nodes[1]), min(m_nodes[0], m_nodes[1]), stiffval1_2);
-
-	float stiffval2_3 = area*(node_2_grad[0] * node_3_grad[0] + node_2_grad[1] * node_3_grad[1]);
-	pMesh->AddToStiffnessMatrix(max(m_nodes[1], m_nodes[2]), min(m_nodes[1], m_nodes[2]), stiffval2_3);
+	pMesh->AddToStiffnessMatrix(max(m_nodes[0], m_nodes[1]), min(m_nodes[0], m_nodes[1]), area * (node_1_grad | node_2_grad));
+	pMesh->AddToStiffnessMatrix(max(m_nodes[1], m_nodes[2]), min(m_nodes[1], m_nodes[2]), area * (node_2_grad | node_3_grad));
+	pMesh->AddToStiffnessMatrix(max(m_nodes[0], m_nodes[2]), min(m_nodes[0], m_nodes[2]), area * (node_1_grad | node_3_grad));
 	
-	float stiffval1_3 = area*(node_1_grad[0] * node_3_grad[0] + node_1_grad[1] * node_3_grad[1]);
-	pMesh->AddToStiffnessMatrix(max(m_nodes[0], m_nodes[2]), min(m_nodes[0], m_nodes[2]), stiffval1_3);
+	pMesh->AddToStiffnessMatrix(m_nodes[0], m_nodes[0], area*(node_1_grad|node_1_grad));
+	pMesh->AddToStiffnessMatrix(m_nodes[1], m_nodes[1], area*(node_2_grad | node_2_grad));
+	pMesh->AddToStiffnessMatrix(m_nodes[2], m_nodes[2], area*(node_3_grad | node_3_grad));
 }
 
 // TASK 2
@@ -82,6 +84,6 @@ void FEMElementTri::computeSingleBasisDerivGlobalLES(size_t nodeId, Vector2 &bas
 	Vector3 res(M.inverse()*deltaV);
 	
 	basisDerivGlobal = Vector2(res[0], res[1]);
-	//cout << "(Normal)  Node Id = " << nodeId << ": " << basisDerivGlobal << endl;
+	cout << "(Normal)  Node Id = " << nodeId << ": " << basisDerivGlobal << endl;
 }
 

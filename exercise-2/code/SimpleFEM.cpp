@@ -5,7 +5,7 @@
 // size of grid
 static const size_t GRIDSIZE = 5;
 // use a graded mesh, or a regular mesh
-static const bool gradedMesh = true;
+static const bool gradedMesh = false;
 // laplace or poisson problem?
 static const bool laplaceProblem = true;
 // plot solution or error?
@@ -124,9 +124,25 @@ void SimpleFEM::ComputeRHS(const FEMMesh &mesh,  vector<float> &rhs)
 {
 	for(size_t ie=0; ie<mesh.GetNumElements(); ie++) {
 		const FEMElementTri& elem = mesh.GetElement(ie);
-		//Task4 starts here
-		
-		//Task4 ends here
+
+		Vector2 node_1 = mesh.GetNodePosition(elem.GetGlobalNodeForElementNode(0));
+		Vector2 node_2 = mesh.GetNodePosition(elem.GetGlobalNodeForElementNode(1));
+		Vector2 node_3 = mesh.GetNodePosition(elem.GetGlobalNodeForElementNode(2));
+
+		Vector2 middlePt((node_1[0] + node_2[0]) / 2, (node_1[1] + node_2[1]) / 2); double h = Vector2(node_3 - middlePt).length();
+		double area = (node_1 - node_2).length() * (h / 2);
+
+		Vector2 n1_grad; elem.computeSingleBasisDerivGlobalLES(elem.GetGlobalNodeForElementNode(0), n1_grad, &mesh);
+		Vector2 n2_grad; elem.computeSingleBasisDerivGlobalLES(elem.GetGlobalNodeForElementNode(1), n2_grad, &mesh);
+		Vector2 n3_grad; elem.computeSingleBasisDerivGlobalLES(elem.GetGlobalNodeForElementNode(2), n3_grad, &mesh);
+
+		double barycenter_x = (node_1[0] + node_2[0] + node_3[0]) / 3;
+		double barycenter_y = (node_1[1] + node_2[1] + node_3[1]) / 3;
+		double f_val = eval_f(barycenter_x, barycenter_y);
+
+		rhs[elem.GetGlobalNodeForElementNode(0)] += area * (f_val * n1_grad[0] + f_val * n1_grad[1]);
+		rhs[elem.GetGlobalNodeForElementNode(1)] += area * (f_val * n2_grad[0] + f_val * n2_grad[1]);
+		rhs[elem.GetGlobalNodeForElementNode(2)] += area * (f_val * n3_grad[0] + f_val * n3_grad[1]);
 	}
 }
 

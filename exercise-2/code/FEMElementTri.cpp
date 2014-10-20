@@ -15,7 +15,6 @@
 // TASK 3
 void FEMElementTri::Assemble(FEMMesh *pMesh) const
 {
-	
 	Vector2 node_1 = pMesh->GetNodePosition(m_nodes[0]);
 	Vector2 node_2 = pMesh->GetNodePosition(m_nodes[1]);
 	Vector2 node_3 = pMesh->GetNodePosition(m_nodes[2]);
@@ -60,7 +59,7 @@ void FEMElementTri::computeSingleBasisDerivGlobalGeom(size_t nodeId, Vector2 &ba
 	double h = Vector2(current_node - middlePt).length();
 	basisDerivGlobal = normal.normalized() / h;
 
-	cout << "(Geometry) Node Id = " << nodeId << ": " << basisDerivGlobal << endl;
+	//cout << "(Geometry) Node Id = " << nodeId << ": " << basisDerivGlobal << endl;
 	
 }
 
@@ -84,6 +83,6 @@ void FEMElementTri::computeSingleBasisDerivGlobalLES(size_t nodeId, Vector2 &bas
 	Vector3 res(M.inverse()*deltaV);
 	
 	basisDerivGlobal = Vector2(res[0], res[1]);
-	cout << "(Normal)  Node Id = " << nodeId << ": " << basisDerivGlobal << endl;
+	//cout << "(Normal)  Node Id = " << nodeId << ": " << basisDerivGlobal << endl;
 }
 

@@ -1,3 +1,6 @@
 *.o
 exercise1_mac
 Makefile
+exercise-3/code/output
+fluid2d
+exercise2_mac

@@ -3,6 +3,8 @@
 
 #define GETF(x,y) field[(x) + (y) * xRes]
 #define GETB(x,y) b[(x) + (y) * xRes]
+#define GET_X_V(x,y) xVelocity[(x) + (y) * xRes]
+#define GET_Y_V(x,y) yVelocity[(x) + (y) * xRes]
 
 // Problem 1
 void ExSolvePoisson(int xRes, int yRes, int _iterations, double _accuracy, double* field, double* b)
@@ -30,9 +32,14 @@ void ExSolvePoisson(int xRes, int yRes, int _iterations, double _accuracy, doubl
 }
 
 // Probelm 2
-void ExCorrectVelocities(int _xRes, int _yRes, double _dt, const double* _pressure, double* _xVelocity, double* _yVelocity)
-{
+void ExCorrectVelocities(int xRes, int yRes, double dt, const double* field, double* xVelocity, double* yVelocity) {
 	// note: velocity u_{i+1/2} is practically stored at i+1
+	for (int y = 1; y < yRes - 1; y++) {
+		for (int x = 1; x < xRes - 1; x++) {
+			GET_X_V(y, x) = GET_X_V(y, x) - dt*(GETF(x + 1, y) - GETF(x, y));
+			GET_Y_V(y, x) = GET_Y_V(y, x) - dt*(GETF(x, y + 1) - GETF(x, y));
+		}
+	}
 }
 
 // Problem 3

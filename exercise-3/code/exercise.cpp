@@ -8,21 +8,25 @@
 void ExSolvePoisson(int xRes, int yRes, int _iterations, double _accuracy, double* field, double* b)
 {
 	// note that the boundaries are handles by the framework, so you iterations should be similar to:
-	for (int y = 1; y < yRes - 1; y++) {
-		for (int x = 1; x < xRes - 1; x++)
-		{
-			//GETF(x,y) ... GETB(x,y)
+	for (int i = 1; i <= _iterations; i++) {
+		for (int y = 1; y < yRes - 1; y++) {
+			for (int x = 1; x < xRes - 1; x++) {
+				GETF(x, y) = (GETB(x, y) + GETF(x + 1, y) + GETF(x - 1, y) + GETF(x, y + 1) + GETF(x, y - 1)) / 4;
+
+				// calc residual
+				double residual = 4 * GETF(x, y) - ( GETF(x + 1, y) + GETF(x - 1, y) + GETF(x, y + 1) + GETF(x, y - 1) );
+				residual += GETB(x,y);
+				if (i == _iterations - 1)
+					printf("Pressure solver: iter=%d , res=%f \n", i, residual);
+				if (residual<_accuracy) {
+					//printf("Pressure solver: iter=%d , converged \n", i, residual);
+					break; // optional
+				}
+			}
 		}
+	
+		
 	}
-
-	// for your debugging, and ours, please add these prints after every iteration
-	/*if(iter==_iterations-1) 
-		printf("Pressure solver: iter=%d , res=%f \n",iter, residual);
-	if(residual<_accuracy) {
-		printf("Pressure solver: iter=%d , converged \n",iter,residual);
-		break; // optional
-	} */
-
 }
 
 // Probelm 2

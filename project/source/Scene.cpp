@@ -124,8 +124,8 @@ void Scene::Update(void)
 		Vector3d gravitation_force = particles[i].density * Vector3d(0,-9.81,0);
 
 		particles[i].force = Vector3d(0,0,0);
-		particles[i].force += particles[i].density * pressure_force;
-		particles[i].force += particles[i].density * viscosity_force;
+		particles[i].force += pressure_force;
+		particles[i].force += viscosity_force;
 		particles[i].force += gravitation_force;
 	}
 

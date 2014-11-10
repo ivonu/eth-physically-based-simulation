@@ -10,16 +10,16 @@ class Scene
 public:
 	vector<Particle> particles;
 
-   	const static int NUM_PARTICLES = 5;
-   	const static double d = 0.1;
-   	const static double h = 2 * d;
-   	const static double volume = d*d*d;
-   	const static int rho0 = 1000;
-   	const static int k = 1000;
-   	const static double mass = volume * rho0;
-   	const static double mu = 0.00089;
+   	const static int NUM_PARTICLES;
+   	const static double d;
+   	const static double h;
+   	const static double volume;
+   	const static int rho0;
+   	const static int k;
+   	const static double mass;
+   	const static double mu;
 
-	const static double timestep = 0.01;
+	const static int timestep;
 	
 protected:
 	//Animation

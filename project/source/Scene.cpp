@@ -3,6 +3,17 @@
 #include "GLUT/glut.h"
 #include <cmath>
 
+const int Scene::NUM_PARTICLES = 5;
+const double Scene::d = 0.1;
+const double Scene::h = 2 * d;
+const double Scene::volume = d*d*d;
+const int Scene::rho0 = 1000;
+const int Scene::k = 1000;
+const double Scene::mass = volume * rho0;
+const double Scene::mu = 0.00089;
+
+const int Scene::timestep = 10;
+
 Scene::Scene(void)
 {
    Init();
@@ -69,23 +80,18 @@ void Scene::Update(void)
 		// find neighborhoods Ni(t)
 		neighboors[i] = findNeighboors(i);
 
-		cout << neighboors[i].size() << endl;
-
 		// compute density
 		particles[i].density = 0.0;
 		for (int j = 0; j < neighboors[i].size(); j++) {
 			particles[i].density += mass * poly6_kernel((particles[i].position - neighboors[i][j].position).length());
 		}
-	}
 
-	// compute pressure
-	for (int i = 0; i < particles.size(); i++) {
+		// compute pressure
 		particles[i].pressure = k * (particles[i].density - rho0);
 	}
 
 	// compute forces
 	for (int i = 0; i < particles.size(); i++) {
-		particles[i].force = Vector3d(0,0,0);
 
 		Vector3d pressure_force (0,0,0);
 		Vector3d viscosity_force (0,0,0);
@@ -96,37 +102,27 @@ void Scene::Update(void)
 
 			pressure_force -= (particles[i].position - neighboors[i][j].position).normalized() * pressure_force_scalar;
 
-			viscosity_force += mu * (mass / neighboors[i][j].density) * neighboors[i][j].speed * 
+			viscosity_force += mu * (mass / neighboors[i][j].density) * (neighboors[i][j].speed - particles[i].speed) * 
 				viscosity_laplacian((particles[i].position - neighboors[i][j].position).length());
 		}
 
 		Vector3d gravitation_force = particles[i].density * Vector3d(0,-9.81,0);
 
-		particles[i].force = /*pressure_force + viscosity_force + */gravitation_force;
+		particles[i].force = /*pressure_force * 0.0 + viscosity_force + */gravitation_force;
 	}
 
-	// update velocities and positions
+	double dt = timestep / 1000.0;
 	for (int i = 0; i < particles.size(); i++) {
-		particles[i].speed += particles[i].force * (timestep / particles[i].density);
-		particles[i].position += (particles[i].speed * timestep);
-	}
+		// update velocities and positions
+		particles[i].speed += particles[i].force * (dt / particles[i].density);
+		particles[i].position += (particles[i].speed * dt);
 
-    	
-    // for all i do
-    //     find neighborhoods Ni(t)
-    // end for
-    // for all i do
-    //     compute density 
-    //     compute pressure
-    // end for
-    // for all i do
-    //     compute forces
-    // end for
-    // for all i do
-    //     compute new velocity
-    //     compute new position
-    //     collision handling
-    // end for
+		// handle collisions
+		if (particles[i].position.y() < 0) {
+			particles[i].position.y() = 0;
+			particles[i].speed.y() = -particles[i].speed.y();
+		}
+	}
 }
 
 void Scene::Render(void)

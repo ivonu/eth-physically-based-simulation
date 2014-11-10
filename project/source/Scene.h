@@ -1,15 +1,15 @@
 #pragma once
 
 #include <vector>
+#include "particle.h"
 using namespace std;
 
 class Scene
 {
 
 public:
-	double x = 0.0;
+	Particle particle;
 	
-
 protected:
 	//Animation
 	bool pause;

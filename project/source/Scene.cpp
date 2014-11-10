@@ -1,12 +1,11 @@
 #include "Scene.h"
+#include "utilities.h"
 #include "GLUT/glut.h"
 
 Scene::Scene(void)
 {
    Init();
 }
-
-//some default call: -testcase hanging -method Euler -stiff 10 -mass 0.1 -step 0.003 -damp 0.01
 
 Scene::Scene(int argc, char* argv[])
 {
@@ -22,6 +21,7 @@ void Scene::Init(void)
 {
    //Animation settings
    pause=false;
+   particle.position = Vector3d(0,0,-10);
 }
 
 
@@ -32,16 +32,12 @@ void Scene::Update(void)
       return;
    }
 	
-	x += 0.1;
-	if (x > 2.0)
-		x = -2.0;
+	particle.position.x() += 0.01;
+	if (particle.position.x() > 2.0)
+		particle.position.x() = -2.0;
 }
 
 void Scene::Render(void)
 {
-	glColor3d(1,0,0);
-	glPushMatrix();
-        glTranslated(x, 0, -10);
-        glutSolidSphere(1,36,36);
-    glPopMatrix(); 
+	particle.draw();
 }

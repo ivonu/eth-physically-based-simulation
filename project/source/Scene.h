@@ -14,8 +14,8 @@ public:
    	const static double d;
    	const static double h;
    	const static double volume;
-   	const static int rho0;
-   	const static int k;
+   	const static double rho0;
+   	const static double k;
    	const static double mass;
    	const static double mu;
 
@@ -34,7 +34,7 @@ public:
 	void Init(void);
 	void Render();
 	void Update();
-	vector<Particle> findNeighboors (int j);
+	vector<Particle*> findNeighboors (int j);
 
 	double poly6_kernel(double r);
 	double spiky_kernel_gradient(double r);

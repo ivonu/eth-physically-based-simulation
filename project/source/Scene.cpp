@@ -7,12 +7,12 @@ const int Scene::NUM_PARTICLES = 5;
 const double Scene::d = 0.1;
 const double Scene::h = 2 * d;
 const double Scene::volume = d*d*d;
-const int Scene::rho0 = 1000;
-const int Scene::k = 1000;
+const double Scene::rho0 = 1000;
+const double Scene::k = 1000;
 const double Scene::mass = volume * rho0;
 const double Scene::mu = 0.00089;
 
-const int Scene::timestep = 10;
+const int Scene::timestep = 1;
 
 Scene::Scene(void)
 {
@@ -34,7 +34,7 @@ void Scene::Init(void)
    //Animation settings
    pause=false;
 
-   Vector3d initial_pos (-0.5, 1.0, -10.0);
+   Vector3d initial_pos (-0.5, 1.0, -11.0);
 
    for (int x = 0; x < NUM_PARTICLES; x++) {
 	   for (int y = 0; y < NUM_PARTICLES; y++) {
@@ -46,23 +46,32 @@ void Scene::Init(void)
 }
 
 double Scene::poly6_kernel(double r) {
-	return (315 / (64 * M_PI * pow (d, 9))) * pow(d*d - r*r, 3);
+	if (r < 0 || r > h) 
+		return 0;
+
+	return (315.0 / (64.0 * M_PI * pow (h, 9))) * pow(h*h - r*r, 3);
 }
 
 double Scene::spiky_kernel_gradient(double r) {
-	return -3.0 * (15/(M_PI * pow(h,6))) * pow(h-r, 2);
+	if (r < 0 || r > h) 
+		return 0.0;
+
+	return -3.0 * (15.0 / (M_PI * pow(h, 6))) * pow(h-r, 2);
 }
 
 double Scene::viscosity_laplacian(double r) {
-	return (45 / (M_PI * pow(h,6))) * (h-r);
+	if (r < 0 || r > h) 
+		return 0;
+
+	return (45.0 / (M_PI * pow(h, 6))) * (h-r);
 }
 
 
-vector<Particle> Scene::findNeighboors (int j) {
-	vector<Particle> neighboors;
+vector<Particle*> Scene::findNeighboors (int j) {
+	vector<Particle*> neighboors;
 	for (int i = 0; i < particles.size(); i++) {
-		if ((particles[j].position - particles[i].position).length() < h) {
-			neighboors.push_back(particles[i]);
+		if ((particles[j].position - particles[i].position).length() <= h) {
+			neighboors.push_back(&particles[i]);
 		}
 	}
 	return neighboors;
@@ -75,7 +84,7 @@ void Scene::Update(void)
 	  return;
 	}
 
-	vector< vector<Particle> > neighboors (particles.size());
+	vector< vector<Particle*> > neighboors (particles.size());
 	for (int i = 0; i < particles.size(); i++) {
 		// find neighborhoods Ni(t)
 		neighboors[i] = findNeighboors(i);
@@ -83,32 +92,41 @@ void Scene::Update(void)
 		// compute density
 		particles[i].density = 0.0;
 		for (int j = 0; j < neighboors[i].size(); j++) {
-			particles[i].density += mass * poly6_kernel((particles[i].position - neighboors[i][j].position).length());
+			particles[i].density += mass * poly6_kernel((particles[i].position - neighboors[i][j]->position).length());
 		}
 
 		// compute pressure
 		particles[i].pressure = k * (particles[i].density - rho0);
+		particles[i].pressure = max(particles[i].pressure, 0.0);
 	}
 
 	// compute forces
 	for (int i = 0; i < particles.size(); i++) {
 
-		Vector3d pressure_force (0,0,0);
-		Vector3d viscosity_force (0,0,0);
+		Vector3d pressure_force (0.0,0.0,0.0);
+		Vector3d viscosity_force (0.0,0.0,0.0);
 		for (int j = 0; j < neighboors[i].size(); j++) {
-			double pressure_force_scalar = mass * 
-				((particles[i].pressure + neighboors[i][j].pressure) / (2 * neighboors[i][j].density)) * 
-				spiky_kernel_gradient((particles[i].position - neighboors[i][j].position).length());
+			Vector3d x_ij = (particles[i].position - neighboors[i][j]->position);
 
-			pressure_force -= (particles[i].position - neighboors[i][j].position).normalized() * pressure_force_scalar;
+			double pressure_force_scalar = (mass / neighboors[i][j]->density) *
+				((particles[i].pressure + neighboors[i][j]->pressure) / 2.0) * 
+				spiky_kernel_gradient(x_ij.length());
 
-			viscosity_force += mu * (mass / neighboors[i][j].density) * (neighboors[i][j].speed - particles[i].speed) * 
-				viscosity_laplacian((particles[i].position - neighboors[i][j].position).length());
+			if (x_ij.length() != 0.0)
+				pressure_force -= x_ij.normalized() * pressure_force_scalar;
+			
+			viscosity_force += mu * 
+				(mass / neighboors[i][j]->density) * 
+				(neighboors[i][j]->speed - particles[i].speed) * 
+				viscosity_laplacian(x_ij.length());
 		}
-
+		
 		Vector3d gravitation_force = particles[i].density * Vector3d(0,-9.81,0);
 
-		particles[i].force = /*pressure_force * 0.0 + viscosity_force + */gravitation_force;
+		particles[i].force = Vector3d(0,0,0);
+		particles[i].force += particles[i].density * pressure_force;
+		particles[i].force += particles[i].density * viscosity_force;
+		particles[i].force += gravitation_force;
 	}
 
 	double dt = timestep / 1000.0;
@@ -118,9 +136,25 @@ void Scene::Update(void)
 		particles[i].position += (particles[i].speed * dt);
 
 		// handle collisions
-		if (particles[i].position.y() < 0) {
-			particles[i].position.y() = 0;
+		if (particles[i].position.y() < -1) {
+			particles[i].position.y() = -1;
 			particles[i].speed.y() = -particles[i].speed.y();
+		}
+		if (particles[i].position.x() < -2) {
+			particles[i].position.x() = -2;
+			particles[i].speed.x() = -particles[i].speed.x();
+		}
+		if (particles[i].position.x() > 2) {
+			particles[i].position.x() = 2;
+			particles[i].speed.x() = -particles[i].speed.x();
+		}
+		if (particles[i].position.z() < -14) {
+			particles[i].position.z() = -14;
+			particles[i].speed.z() = -particles[i].speed.z();
+		}
+		if (particles[i].position.z() > -10) {
+			particles[i].position.z() = -10;
+			particles[i].speed.z() = -particles[i].speed.z();
 		}
 	}
 }

@@ -6,7 +6,6 @@
 #include "Scene.h"
 
 Scene *sc = NULL;
-const int timestep = 10;
 
 void display(void)
 {
@@ -18,25 +17,10 @@ void display(void)
 }
 
 void timer(int value) { 
-    // for all i do
-    //     find neighborhoods Ni(t)
-    // end for
-    // for all i do
-    //     compute density 
-    //     compute pressure
-    // end for
-    // for all i do
-    //     compute forces
-    // end for
-    // for all i do
-    //     compute new velocity
-    //     compute new position
-    //     collision handling
-    // end for
 
     sc->Update();
 
-    glutTimerFunc(timestep, timer, 0);
+    glutTimerFunc(Scene::timestep, timer, 0);
     glutPostRedisplay(); 
 }
 
@@ -62,7 +46,7 @@ void initScene() {
     glEnable(GL_LIGHT0);
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHTING); 
-
+    
     glLightfv(GL_LIGHT0, GL_POSITION, light_position); 
 
     glMaterialfv(GL_FRONT, GL_AMBIENT,   mat_ambient);
@@ -88,7 +72,7 @@ int main(int argc, char** argv)
     // callback functions
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
-    glutTimerFunc(timestep, timer, 0);
+    glutTimerFunc(Scene::timestep, timer, 0);
 
     // initialization
     initScene();

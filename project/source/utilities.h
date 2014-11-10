@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <vector>
+#include <cmath>
 using namespace std;
 
 //! Simple 2D vector class

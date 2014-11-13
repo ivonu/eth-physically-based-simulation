@@ -3,46 +3,58 @@
 #include "GLUT/glut.h"
 #include <cmath>
 
-const int Scene::NUM_PARTICLES = 5;
+const Vector3d Scene::initial_pos (-1.5, -1.0, -10.0);
+const int Scene::NUM_PARTICLES_X = 10;
+const int Scene::NUM_PARTICLES_Y = 40;
+const int Scene::NUM_PARTICLES_Z = 20;
+const int Scene::NUM_PARTICLES = NUM_PARTICLES_X * NUM_PARTICLES_Y * NUM_PARTICLES_Z;
+const double Scene::LEFT_WALL  = -1.5;
+const double Scene::RIGHT_WALL = 1.5;
+const double Scene::BACK_WALL  = -12;
+const double Scene::FRONT_WALL = -10;
+const double Scene::BOTTOM_WALL = -1;
+const double Scene::TOP_WALL = 10;
 const double Scene::d = 0.1;
-const double Scene::h = 2 * d;
+const double Scene::h = 2.0 * d;
 const double Scene::volume = d*d*d;
-const double Scene::rho0 = 1000;
-const double Scene::k = 1000;
-const double Scene::mass = volume * rho0;
-const double Scene::mu = 0.00089;
+const double Scene::rho0 = 1000.0;
+const double Scene::k = 1000.0;
+const double Scene::mu = 100;
+const double Scene::collision_damping = 1.0;
 
-const int Scene::timestep = 1;
+const int Scene::timestep = 5;
 
-Scene::Scene(void)
+Scene::Scene(void) :
+	grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), initial_pos, h)
 {
    Init();
 }
 
-Scene::Scene(int argc, char* argv[])
-{
-   Init();
+Scene::~Scene(void) {
+	for (int i = 0; i < NUM_PARTICLES; i++) {
+		delete particles[i];
+	}
 }
-
-Scene::~Scene(void)
-{
-}
-
 
 void Scene::Init(void)
 {
    //Animation settings
    pause=false;
 
-   Vector3d initial_pos (-0.5, 1.0, -11.0);
-
-   for (int x = 0; x < NUM_PARTICLES; x++) {
-	   for (int y = 0; y < NUM_PARTICLES; y++) {
-	   		for (int z = 0; z < NUM_PARTICLES; z++) {
-   				particles.push_back(Particle(initial_pos + Vector3d(x*d, y*d, z*d)));
+   for (int x = 0; x < NUM_PARTICLES_X; x++) {
+	   for (int y = 0; y < NUM_PARTICLES_Y; y++) {
+	   		for (int z = 0; z < NUM_PARTICLES_Z; z++) {
+	   			Particle* part = new Particle(initial_pos + Vector3d(x*d, y*d, -z*d));
+   				// if (y > NUM_PARTICLES_Y/2) {
+   				// 	part->b = 1;
+   				// 	part->mass *= 2;
+   				// }
+   				particles.push_back(part);
+				grid.addParticle(part);
    			}
    		}
   	}
+
 }
 
 double Scene::poly6_kernel(double r) {
@@ -67,11 +79,11 @@ double Scene::viscosity_laplacian(double r) {
 }
 
 
-vector<Particle*> Scene::findNeighboors (int j) {
+vector<Particle*> Scene::findNeighboors (const vector<Particle*>& potential_neighboors, Particle* particle) {
 	vector<Particle*> neighboors;
-	for (int i = 0; i < particles.size(); i++) {
-		if ((particles[j].position - particles[i].position).length() <= h) {
-			neighboors.push_back(&particles[i]);
+	for (int i = 0; i < potential_neighboors.size(); i++) {
+		if ((particle->position - potential_neighboors[i]->position).length() <= h) {
+			neighboors.push_back(potential_neighboors[i]);
 		}
 	}
 	return neighboors;
@@ -83,85 +95,94 @@ void Scene::Update(void)
 	if (pause) {
 	  return;
 	}
-
+	//cout << "=========================================" << endl;
 	vector< vector<Particle*> > neighboors (particles.size());
-	for (int i = 0; i < particles.size(); i++) {
+	for (int i = 0; i < NUM_PARTICLES; i++) {
 		// find neighborhoods Ni(t)
-		neighboors[i] = findNeighboors(i);
-
+		//neighboors[i] = findNeighboors(particles, particles[i]);
+		neighboors[i] = findNeighboors(grid.getNeighboors(particles[i]), particles[i]);
+		
 		// compute density
-		particles[i].density = 0.0;
+		particles[i]->density = 0.0;
 		for (int j = 0; j < neighboors[i].size(); j++) {
-			particles[i].density += mass * poly6_kernel((particles[i].position - neighboors[i][j]->position).length());
+			particles[i]->density += neighboors[i][j]->mass * poly6_kernel((particles[i]->position - neighboors[i][j]->position).length());
 		}
-
+		
 		// compute pressure
-		particles[i].pressure = k * (particles[i].density - rho0);
-		particles[i].pressure = max(particles[i].pressure, 0.0);
+		particles[i]->pressure = k * (particles[i]->density - rho0);
+		particles[i]->pressure = max(particles[i]->pressure, 0.0);
 	}
 
 	// compute forces
-	for (int i = 0; i < particles.size(); i++) {
+	for (int i = 0; i < NUM_PARTICLES; i++) {
 
 		Vector3d pressure_force (0.0,0.0,0.0);
 		Vector3d viscosity_force (0.0,0.0,0.0);
 		for (int j = 0; j < neighboors[i].size(); j++) {
-			Vector3d x_ij = (particles[i].position - neighboors[i][j]->position);
+			Vector3d x_ij = (particles[i]->position - neighboors[i][j]->position);
 
-			double pressure_force_scalar = (mass / neighboors[i][j]->density) *
-				((particles[i].pressure + neighboors[i][j]->pressure) / 2.0) * 
+			double pressure_force_scalar = (neighboors[i][j]->mass / neighboors[i][j]->density) *
+				((particles[i]->pressure + neighboors[i][j]->pressure) / 2.0) * 
 				spiky_kernel_gradient(x_ij.length());
 
 			if (x_ij.length() != 0.0)
 				pressure_force -= x_ij.normalized() * pressure_force_scalar;
 			
 			viscosity_force += mu * 
-				(mass / neighboors[i][j]->density) * 
-				(neighboors[i][j]->speed - particles[i].speed) * 
+				(neighboors[i][j]->mass / neighboors[i][j]->density) * 
+				(neighboors[i][j]->speed - particles[i]->speed) * 
 				viscosity_laplacian(x_ij.length());
 		}
 		
-		Vector3d gravitation_force = particles[i].density * Vector3d(0,-9.81,0);
+		Vector3d gravitation_force = particles[i]->density * Vector3d(0,-9.81,0);
 
-		particles[i].force = Vector3d(0,0,0);
-		particles[i].force += pressure_force;
-		particles[i].force += viscosity_force;
-		particles[i].force += gravitation_force;
+		particles[i]->force = Vector3d(0,0,0);
+		particles[i]->force += pressure_force;
+		particles[i]->force += viscosity_force;
+		particles[i]->force += gravitation_force;
 	}
 
+	grid.removeParticles();
+
 	double dt = timestep / 1000.0;
-	for (int i = 0; i < particles.size(); i++) {
+	for (int i = 0; i < NUM_PARTICLES; i++) {
 		// update velocities and positions
-		particles[i].speed += particles[i].force * (dt / particles[i].density);
-		particles[i].position += (particles[i].speed * dt);
+		particles[i]->speed += particles[i]->force * (dt / particles[i]->density);
+		particles[i]->position += (particles[i]->speed * dt);
 
 		// handle collisions
-		if (particles[i].position.y() < -1) {
-			particles[i].position.y() = -1;
-			particles[i].speed.y() = -particles[i].speed.y();
+		if (particles[i]->position.y() < BOTTOM_WALL) {
+			particles[i]->position.y() = BOTTOM_WALL;
+			particles[i]->speed.y() = -particles[i]->speed.y() * collision_damping;
 		}
-		if (particles[i].position.x() < -2) {
-			particles[i].position.x() = -2;
-			particles[i].speed.x() = -particles[i].speed.x();
+		if (particles[i]->position.y() > TOP_WALL) {
+			particles[i]->position.y() = TOP_WALL;
+			particles[i]->speed.y() = -particles[i]->speed.y() * collision_damping;
 		}
-		if (particles[i].position.x() > 2) {
-			particles[i].position.x() = 2;
-			particles[i].speed.x() = -particles[i].speed.x();
+		if (particles[i]->position.x() < LEFT_WALL) {
+			particles[i]->position.x() = LEFT_WALL;
+			particles[i]->speed.x() = -particles[i]->speed.x() * collision_damping;
 		}
-		if (particles[i].position.z() < -14) {
-			particles[i].position.z() = -14;
-			particles[i].speed.z() = -particles[i].speed.z();
+		if (particles[i]->position.x() > RIGHT_WALL) {
+			particles[i]->position.x() = RIGHT_WALL;
+			particles[i]->speed.x() = -particles[i]->speed.x() * collision_damping;
 		}
-		if (particles[i].position.z() > -10) {
-			particles[i].position.z() = -10;
-			particles[i].speed.z() = -particles[i].speed.z();
+		if (particles[i]->position.z() < BACK_WALL) {
+			particles[i]->position.z() = BACK_WALL;
+			particles[i]->speed.z() = -particles[i]->speed.z() * collision_damping;
 		}
+		if (particles[i]->position.z() > FRONT_WALL) {
+			particles[i]->position.z() = FRONT_WALL;
+			particles[i]->speed.z() = -particles[i]->speed.z() * collision_damping;
+		}
+
+		grid.addParticle(particles[i]);
 	}
 }
 
 void Scene::Render(void)
 {
-	for (int i = 0; i < particles.size(); i++) {
-		particles[i].draw();
+	for (int i = 0; i < NUM_PARTICLES; i++) {
+		particles[i]->draw();
 	}
 }

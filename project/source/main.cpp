@@ -1,8 +1,4 @@
-#if LINUXVERSION==1
-	#include "GL/glut.h"
-#else
-	#include "GLUT/glut.h"
-#endif
+#include "GLUT/glut.h"
 #include "Scene.h"
 
 Scene *sc = NULL;
@@ -16,12 +12,17 @@ void display(void)
     glutSwapBuffers();
 }
 
-void timer(int value) { 
+void render_timer(int value) { 
+
+    glutPostRedisplay();
+    glutTimerFunc(30, render_timer, value);
+}
+
+void physical_timer(int value) { 
 
     sc->Update();
 
-    glutTimerFunc(Scene::timestep, timer, 0);
-    glutPostRedisplay(); 
+    glutTimerFunc(Scene::timestep, physical_timer, value);
 }
 
 void reshape(int w, int h)
@@ -51,8 +52,8 @@ void initScene() {
 
     glMaterialfv(GL_FRONT, GL_AMBIENT,   mat_ambient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE,   mat_diffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
-    glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess); 
+    //glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
+    //glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess); 
 
     sc = new Scene();
 }
@@ -72,7 +73,8 @@ int main(int argc, char** argv)
     // callback functions
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
-    glutTimerFunc(Scene::timestep, timer, 0);
+    glutTimerFunc(Scene::timestep, physical_timer, 0);
+    glutTimerFunc(30, render_timer, 1);
 
     // initialization
     initScene();

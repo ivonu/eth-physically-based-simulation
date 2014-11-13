@@ -9,6 +9,8 @@ class Particle {
 		double density;
 		double pressure;
 		Vector3d force;
+		double mass;
+		double r, g, b;
 
 		Particle() {};
 		Particle (Vector3d position);

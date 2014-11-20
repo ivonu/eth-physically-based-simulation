@@ -68,7 +68,16 @@ void Scene::Init(void)
   	collision_objects.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(0,0,-1)));
   	collision_objects.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, BACK_WALL), Vector3d(0,0,1)));
 
-  	mesh.initialize();
+  	// load mesh
+  	if (!objmodel_ptr) {
+	    objmodel_ptr = glmReadOBJ("bunny.obj");
+	    if (!objmodel_ptr)
+	        exit(0);
+
+	    glmUnitize(objmodel_ptr);
+	    glmFacetNormals(objmodel_ptr);
+	    glmVertexNormals(objmodel_ptr, 90.0);
+	}
 }
 
 double Scene::poly6_kernel(double r) {
@@ -218,5 +227,8 @@ void Scene::Render(void)
 		particles[i]->draw();
 	}
 
-	mesh.render();
+	glPushMatrix();
+		glTranslatef(0,0,-11);
+	  	glmDraw(objmodel_ptr, GLM_SMOOTH | GLM_MATERIAL);
+  	glPopMatrix();
 }

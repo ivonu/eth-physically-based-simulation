@@ -4,7 +4,7 @@
 #include "particle.h"
 #include "grid.h"
 #include "collision_object.h"
-#include "mesh.h"
+#include "glm.h"
 
 using namespace std;
 
@@ -12,7 +12,8 @@ class Scene
 {
 
 public:
-	Mesh mesh;
+  	GLMmodel *objmodel_ptr;
+
 	Grid grid;
 	vector<Particle*> particles;
    vector<CollisionObject*> collision_objects;

@@ -10,7 +10,8 @@ class Particle {
 		double pressure;
 		Vector3d force;
 		double mass;
-		double r, g, b;
+		double rho0;
+		Vector3d color;
 
 		Particle() {};
 		Particle (Vector3d position);

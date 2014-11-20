@@ -1,5 +1,5 @@
 #include "GLUT/glut.h"
-#include "Scene.h"
+#include "scene.h"
 
 Scene *sc = NULL;
 
@@ -15,7 +15,7 @@ void display(void)
 void render_timer(int value) { 
 
     glutPostRedisplay();
-    glutTimerFunc(30, render_timer, value);
+    glutTimerFunc(20, render_timer, value);
 }
 
 void physical_timer(int value) { 
@@ -52,10 +52,18 @@ void initScene() {
 
     glMaterialfv(GL_FRONT, GL_AMBIENT,   mat_ambient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE,   mat_diffuse);
-    //glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
-    //glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess); 
+    // glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
+    // glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess); 
 
     sc = new Scene();
+}
+
+void keyboard(unsigned char key, int x, int y)
+{
+    switch (key) {
+        case 'b':
+            break;
+    } 
 }
 
 int main(int argc, char** argv)
@@ -75,6 +83,7 @@ int main(int argc, char** argv)
     glutReshapeFunc(reshape);
     glutTimerFunc(Scene::timestep, physical_timer, 0);
     glutTimerFunc(30, render_timer, 1);
+    glutKeyboardFunc(keyboard);
 
     // initialization
     initScene();

@@ -67,6 +67,8 @@ void Scene::Init(void)
   	collision_objects.push_back (new CollisionPlane (Vector3d(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(-1,0,0)));
   	collision_objects.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(0,0,-1)));
   	collision_objects.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, BACK_WALL), Vector3d(0,0,1)));
+
+  	mesh.initialize();
 }
 
 double Scene::poly6_kernel(double r) {
@@ -171,48 +173,50 @@ void Scene::Update(void)
 void Scene::Render(void)
 {
 
-	// BOTTOM
-	glColor3d(1,1,1);
-	glBegin(GL_QUADS);
-		glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
-		glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
-		glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
-		glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
-	glEnd();
-	// LEFT
-	glColor3d(1,0,1);
-	glBegin(GL_QUADS);
-		glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
-		glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
-		glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
-		glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
-	glEnd();
-	// RIGHT
-	glColor3d(1,1,0);
-	glBegin(GL_QUADS);
-		glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
-		glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
-		glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
-		glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
-	glEnd();
-	// BACK
-	glColor3d(0,1,1);
-	glBegin(GL_QUADS);
-		glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
-		glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
-		glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
-		glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
-	glEnd();
-	// TOP
-	glColor3d(0,0,1);
-	glBegin(GL_QUADS);
-		glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
-		glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
-		glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
-		glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
-	glEnd();
+	// // BOTTOM
+	// glColor3d(1,1,1);
+	// glBegin(GL_QUADS);
+	// 	glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
+	// 	glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
+	// 	glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
+	// 	glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
+	// glEnd();
+	// // LEFT
+	// glColor3d(1,0,1);
+	// glBegin(GL_QUADS);
+	// 	glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
+	// 	glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
+	// 	glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
+	// 	glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
+	// glEnd();
+	// // RIGHT
+	// glColor3d(1,1,0);
+	// glBegin(GL_QUADS);
+	// 	glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
+	// 	glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
+	// 	glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
+	// 	glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
+	// glEnd();
+	// // BACK
+	// glColor3d(0,1,1);
+	// glBegin(GL_QUADS);
+	// 	glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
+	// 	glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
+	// 	glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
+	// 	glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
+	// glEnd();
+	// // TOP
+	// glColor3d(0,0,1);
+	// glBegin(GL_QUADS);
+	// 	glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
+	// 	glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
+	// 	glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
+	// 	glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
+	// glEnd();
 
 	for (int i = 0; i < NUM_PARTICLES; i++) {
 		particles[i]->draw();
 	}
+
+	mesh.render();
 }

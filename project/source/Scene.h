@@ -16,6 +16,7 @@ public:
 
 	Grid grid;
 	vector<Particle*> particles;
+   vector<CollisionObject*> collision_bounds;
    vector<CollisionObject*> collision_objects;
 
 	const static Vector3d initial_pos;

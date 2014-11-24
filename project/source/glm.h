@@ -191,9 +191,10 @@ glmDelete(GLMmodel* model);
  * glmDelete().
  *
  * filename - name of the file containing the Wavefront .OBJ format data.  
+ * x,y,z position
  */
 GLMmodel* 
-glmReadOBJ(char* filename);
+glmReadOBJ(char* filename, double x, double y, double z);
 
 /* glmWriteOBJ: Writes a model description in Wavefront .OBJ format to
  * a file.

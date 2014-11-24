@@ -819,6 +819,9 @@ glmUnitize(GLMmodel* model)
         model->vertices[3 * i + 0] *= scale;
         model->vertices[3 * i + 1] *= scale;
         model->vertices[3 * i + 2] *= scale;
+        model->vertices[3 * i + 0] += model->position[0];
+        model->vertices[3 * i + 1] += model->position[1];
+        model->vertices[3 * i + 2] += model->position[2];
     }
     
     return scale;
@@ -1299,7 +1302,7 @@ glmDelete(GLMmodel* model)
  * filename - name of the file containing the Wavefront .OBJ format data.  
  */
 GLMmodel* 
-glmReadOBJ(char* filename)
+glmReadOBJ(char* filename, double x, double y, double z)
 {
     GLMmodel* model;
     FILE* file;
@@ -1330,9 +1333,9 @@ glmReadOBJ(char* filename)
     model->materials       = NULL;
     model->numgroups       = 0;
     model->groups      = NULL;
-    model->position[0]   = 0.0;
-    model->position[1]   = 0.0;
-    model->position[2]   = 0.0;
+    model->position[0]   = x;
+    model->position[1]   = y;
+    model->position[2]   = z;
     
     /* make a first pass through the file to get a count of the number
     of vertices, normals, texcoords & triangles */
@@ -1610,8 +1613,8 @@ glmDraw(GLMmodel* model, GLuint mode)
         mode &= ~GLM_COLOR;
     }
     if (mode & GLM_MATERIAL && !model->materials) {
-        printf("glmDraw() warning: material render mode requested "
-            "with no materials defined.\n");
+        //printf("glmDraw() warning: material render mode requested "
+        //    "with no materials defined.\n");
         mode &= ~GLM_MATERIAL;
     }
     if (mode & GLM_COLOR && mode & GLM_MATERIAL) {

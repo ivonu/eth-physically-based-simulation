@@ -9,7 +9,7 @@ class CollisionObject {
 		CollisionObject() {};
 		virtual ~CollisionObject() {};
 		virtual Vector3d getNormal(Vector3d point) {return Vector3d(0,0,0);};
-		virtual void handleCollision(Particle* particle) {}; 
+		virtual bool handleCollision(Particle* particle, double dt) { return false; }; 
 };
 
 class CollisionPlane : public CollisionObject {
@@ -21,5 +21,17 @@ class CollisionPlane : public CollisionObject {
 		~CollisionPlane() {};
 
 		Vector3d getNormal(Vector3d point);
-		void handleCollision(Particle* particle);
+		bool handleCollision(Particle* particle, double dt);
+};
+
+class CollisionTriangle : public CollisionObject {
+	public:
+		Vector3d v1, v2, v3;
+		Vector3d normal;
+
+		CollisionTriangle (Vector3d v1, Vector3d v2, Vector3d v3);
+		~CollisionTriangle() {};
+
+		Vector3d getNormal(Vector3d point);
+		bool handleCollision(Particle* particle, double dt);
 };

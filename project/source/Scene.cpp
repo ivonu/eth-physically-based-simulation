@@ -1,6 +1,7 @@
 #include "scene.h"
 #include "utilities.h"
 #include "GLUT/glut.h"
+#include <algorithm>
 #include <cmath>
 
 const Vector3d Scene::initial_pos (0, 0.7, -10.5);

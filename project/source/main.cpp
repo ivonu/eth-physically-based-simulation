@@ -1,14 +1,19 @@
 #include "GLUT/glut.h"
 #include "scene.h"
+#include "camera.h"
 
 Scene *sc = NULL;
+CCamera Camera;
 
 void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    sc->Render();
+    glLoadIdentity();
+    Camera.Render();
 
+    sc->Render();
+        
     glutSwapBuffers();
 }
 
@@ -61,8 +66,46 @@ void initScene() {
 void keyboard(unsigned char key, int x, int y)
 {
     switch (key) {
-        case 'b':
-            break;
+    case 'a':       
+        Camera.StrafeRight(-0.1);
+        display();
+        break;
+    case 'd':       
+        Camera.StrafeRight(0.1);
+        display();
+        break;
+    case 'w':       
+        Camera.MoveForwards(-0.1);
+        display();
+        break;
+    case 's':       
+        Camera.MoveForwards(0.1);
+        display();
+        break;
+    case 'j':       
+        Camera.RotateY(1.0);
+        display();
+        break;
+    case 'l':       
+        Camera.RotateY(-1.0);
+        display();
+        break;
+    case 'i':   
+        Camera.RotateX(1.0);    
+        display();
+        break;
+    case 'k':   
+        Camera.RotateX(-1.0);    
+        display();
+        break;
+    case 'q':
+        Camera.Move(F3dVector(0.0,-0.3,0.0));
+        display();
+        break;
+    case 'e':
+        Camera.Move(F3dVector(0.0,0.3,0.0));
+        display();
+        break;
     } 
 }
 
@@ -84,6 +127,9 @@ int main(int argc, char** argv)
     glutTimerFunc(Scene::timestep, physical_timer, 0);
     glutTimerFunc(30, render_timer, 1);
     glutKeyboardFunc(keyboard);
+
+    Camera.Move(F3dVector(0.0, 2.0, 1.0));
+    Camera.RotateX(-10.0);
 
     // initialization
     initScene();

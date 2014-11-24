@@ -280,7 +280,7 @@ void Scene::Render(void)
 	if (objmodel_ptr) {
 		glPushMatrix();
 		//glTranslatef(0,0,-11);
-		glmDraw(objmodel_ptr, GLM_SMOOTH | GLM_MATERIAL);
+		glmDraw(objmodel_ptr, GLM_SMOOTH);
 		glPopMatrix();
 	}
 }

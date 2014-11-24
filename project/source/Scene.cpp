@@ -4,15 +4,15 @@
 #include <algorithm>
 #include <cmath>
 
-const Vector3d Scene::initial_pos (-1.5, -1, -10.0);
+const Vector3d Scene::initial_pos (-1.5, -1.5, -10.0);
 const int Scene::NUM_PARTICLES_X = 10;
-const int Scene::NUM_PARTICLES_Y = 20;
-const int Scene::NUM_PARTICLES_Z = 10;
+const int Scene::NUM_PARTICLES_Y = 15;
+const int Scene::NUM_PARTICLES_Z = 20;
 const int Scene::NUM_PARTICLES = NUM_PARTICLES_X * NUM_PARTICLES_Y * NUM_PARTICLES_Z;
 const double Scene::BARRIER = -0.5;
 const double Scene::LEFT_WALL  = -1.5;
 const double Scene::RIGHT_WALL = 1.5;
-const double Scene::BACK_WALL  = -11;
+const double Scene::BACK_WALL  = -12;
 const double Scene::FRONT_WALL = -10;
 const double Scene::BOTTOM_WALL = -1.5;
 const double Scene::TOP_WALL = 1.5;
@@ -22,7 +22,7 @@ const double Scene::volume = d*d*d;
 const double Scene::rho0 = 1000.0;
 const double Scene::k = 1000.0;
 const double Scene::mu = 80;
-const double Scene::collision_damping = 1.0;
+const double Scene::collision_damping = 0.99;
 
 const int Scene::timestep = 7;
 
@@ -76,7 +76,8 @@ void Scene::Init(void)
 
   	// load mesh
   	if (!objmodel_ptr) {
-	    objmodel_ptr = glmReadOBJ((char*)"objects/bunny_200.obj", 0.75, 0.5,-1.0,-10.5);
+	    objmodel_ptr = glmReadOBJ((char*)"objects/bunny_200.obj", 0.75, 0.5, BOTTOM_WALL, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2);
+	    
 	    if (!objmodel_ptr)
 	        exit(0);
 
@@ -258,6 +259,7 @@ void Scene::Render(void)
 	}
 
 	if (objmodel_ptr) {
+		glColor3d(1,0.5,0);
 		glmDraw(objmodel_ptr, GLM_SMOOTH);
 	}
 }

@@ -1,4 +1,5 @@
 #include "collision_object.h"
+#include "scene.h"
 
 CollisionPlane::CollisionPlane(Vector3d anchor, Vector3d normal) {
 	this->anchor = anchor;
@@ -16,7 +17,8 @@ bool CollisionPlane::handleCollision(Particle* particle, double dt) {
 		return false;
 
 	particle->position -= normal * distToPlane;
-	particle->speed = particle->speed.reflectionAt(normal);
+	particle->speed = particle->speed.reflectionAt(normal) * Scene::collision_damping;
+	
 	return true;
 }
 
@@ -72,7 +74,7 @@ bool CollisionTriangle::handleCollision(Particle* particle, double dt) {
 	if ((normal | v3_v1.cross(x-v3)) < 0)
 		return false;
 
-	particle->speed = particle->speed.reflectionAt(normal);
+	particle->speed = particle->speed.reflectionAt(normal) * Scene::collision_damping;
 	particle->position = x + particle->speed * (dist-t);
 
 	return true;

@@ -32,19 +32,31 @@ Vector3d CollisionTriangle::getNormal(Vector3d point) {
 }
 
 bool CollisionTriangle::handleCollision(Particle* particle, double dt) {
-	
+
+	// last position
 	Vector3d o = particle->position - (particle->speed*dt);
 
-	if ((particle->position-o).length() < 0.001)
+	// distance traveled
+	double dist = (particle->position-o).length();
+
+	// stable particle?
+	if (dist < 0.000001)
 		return false;
 
+	// normalized direction
 	Vector3d d = (particle->position - o).normalized();
 
+	// parallel plane?
+	if ((d | normal) == 0) 
+		return false;
 
+	// distance to hit point
 	double t = -(((o-v1) | normal) / (d | normal));
+
+	// hit point
 	Vector3d x = o + t*d;
-	
-	if ((particle->speed*dt).length() <= t)
+
+	if (dist <= t || t < 0)
 		return false;
 
 	Vector3d v1_v2 = v2 - v1;
@@ -60,24 +72,8 @@ bool CollisionTriangle::handleCollision(Particle* particle, double dt) {
 	if ((normal | v3_v1.cross(x-v3)) < 0)
 		return false;
 
-	Vector3d p = particle->position;
-	cout << "o: " << o.x() << " / " << o.y() << " / " << o.z() << endl;
-	cout << "p: " << p.x() << " / " << p.y() << " / " << p.z() << endl;
-	cout << "d: " << d.x() << " / " << d.y() << " / " << d.z() << endl;
-	cout << "t: " << t << endl;
-	cout << "x: " << x.x() << " / " << x.y() << " / " << x.z() << endl;
-	cout << "old speed: " << particle->speed.x() << " / " << particle->speed.y() << " / " << particle->speed.z() << endl;
-
-
-	double distToPlane = (normal | (particle->position - v1));
-	particle->position -= normal * distToPlane;
 	particle->speed = particle->speed.reflectionAt(normal);
+	particle->position = x + particle->speed * (dist-t);
 
-	//particle->speed = particle->speed.reflectionAt(normal);
-	//particle->position = x + particle->speed * (dt-t);
-	//particle->speed = Vector3d(0,0,0);
-
-	cout << "new speed: " << particle->speed.x() << " / " << particle->speed.y() << " / " << particle->speed.z() << endl;
-	
 	return true;
 }

@@ -15,7 +15,7 @@ void display(void)
 void render_timer(int value) { 
 
     glutPostRedisplay();
-    glutTimerFunc(20, render_timer, value);
+    glutTimerFunc(30, render_timer, value);
 }
 
 void physical_timer(int value) { 

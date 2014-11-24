@@ -4,10 +4,10 @@
 #include <algorithm>
 #include <cmath>
 
-const Vector3d Scene::initial_pos (0, 0.7, -10.5);
-const int Scene::NUM_PARTICLES_X = 3;
-const int Scene::NUM_PARTICLES_Y = 2;
-const int Scene::NUM_PARTICLES_Z = 3;
+const Vector3d Scene::initial_pos (-1.5, -1, -10.0);
+const int Scene::NUM_PARTICLES_X = 10;
+const int Scene::NUM_PARTICLES_Y = 20;
+const int Scene::NUM_PARTICLES_Z = 10;
 const int Scene::NUM_PARTICLES = NUM_PARTICLES_X * NUM_PARTICLES_Y * NUM_PARTICLES_Z;
 const double Scene::BARRIER = -0.5;
 const double Scene::LEFT_WALL  = -1.5;
@@ -76,7 +76,7 @@ void Scene::Init(void)
 
   	// load mesh
   	if (!objmodel_ptr) {
-	    objmodel_ptr = glmReadOBJ((char*)"bunny.obj", 0,-1,-11);
+	    objmodel_ptr = glmReadOBJ((char*)"objects/bunny_200.obj", 0.75, 0.5,-1.0,-10.5);
 	    if (!objmodel_ptr)
 	        exit(0);
 
@@ -99,10 +99,6 @@ void Scene::Init(void)
 	    		Vector3d(objmodel_ptr->vertices[triangle.vindices[2]*3],
 			    		 objmodel_ptr->vertices[triangle.vindices[2]*3+1], 
 			    		 objmodel_ptr->vertices[triangle.vindices[2]*3+2]));
-
-	    	// cout << "v1: " << col_triangle->v1.x() << " / " << col_triangle->v1.y() << " / " << col_triangle->v1.z() << endl;
-	    	// cout << "v2: " << col_triangle->v2.x() << " / " << col_triangle->v2.y() << " / " << col_triangle->v2.z() << endl;
-	    	// cout << "v3: " << col_triangle->v3.x() << " / " << col_triangle->v3.y() << " / " << col_triangle->v3.z() << endl;
 
 			collision_objects.push_back(col_triangle);
 	    }
@@ -150,8 +146,8 @@ void Scene::Update(void)
 	vector< vector<Particle*> > neighboors (particles.size());
 	for (int i = 0; i < NUM_PARTICLES; i++) {
 		// find neighborhoods Ni(t)
-		//neighboors[i] = findNeighboors(grid.getNeighboors(particles[i]), particles[i]);
-		neighboors[i] = findNeighboors(particles, particles[i]);
+		neighboors[i] = findNeighboors(grid.getNeighboors(particles[i]), particles[i]);
+		// neighboors[i] = findNeighboors(particles, particles[i]);
 		
 		// compute density
 		particles[i]->density = 0.0;
@@ -191,14 +187,6 @@ void Scene::Update(void)
 		particles[i]->force += pressure_force;
 		particles[i]->force += viscosity_force;
 		particles[i]->force += gravitation_force;
-
-		if (particles[i]->force.length() <= 0 || particles[i]->density <= 0) {
-			cout << "force: " << particles[i]->force.x() << " / " << particles[i]->force.y() << " / " << particles[i]->force.z() << endl;
-			cout << "pres-force: " << pressure_force.x() << " / " << pressure_force.y() << " / " << pressure_force.z() << endl;
-			cout << "visc-force: " << viscosity_force.x() << " / " << viscosity_force.y() << " / " << viscosity_force.z() << endl;
-			cout << "grav-force: " << gravitation_force.x() << " / " << gravitation_force.y() << " / " << gravitation_force.z() << endl;
-			cout << "dens: " << particles[i]->density << endl;
-		}
 	}
 
 	grid.removeParticles();
@@ -206,19 +194,11 @@ void Scene::Update(void)
 	double dt = timestep / 1000.0;
 	for (int i = 0; i < NUM_PARTICLES; i++) {
 		// update velocities and positions
-
-		cout << "old pos: " << particles[i]->position.x() << " / " << particles[i]->position.y() << " / " << particles[i]->position.z() << endl;
-		cout << "old speed: " << particles[i]->speed.x() << " / " << particles[i]->speed.y() << " / " << particles[i]->speed.z() << endl;
-		cout << "force: " << particles[i]->force.x() << " / " << particles[i]->force.y() << " / " << particles[i]->force.z() << endl;
-		cout << "dens: " << particles[i]->density << endl;
 		particles[i]->speed += particles[i]->force * (dt / particles[i]->density);
 		particles[i]->position += (particles[i]->speed * dt);
-		cout << "new pos: " << particles[i]->position.x() << " / " << particles[i]->position.y() << " / " << particles[i]->position.z() << endl;
-		cout << "new speed: " << particles[i]->speed.x() << " / " << particles[i]->speed.y() << " / " << particles[i]->speed.z() << endl;
-
+		
 		for (int c = 0; c < collision_objects.size(); c++) {
-			if (collision_objects[c]->handleCollision(particles[i], dt)) 
-				break;
+			collision_objects[c]->handleCollision(particles[i], dt);
 		}
 
 		for (int c = 0; c < collision_bounds.size(); c++) {
@@ -232,55 +212,52 @@ void Scene::Update(void)
 void Scene::Render(void)
 {
 
-	// // BOTTOM
-	// glColor3d(1,1,1);
-	// glBegin(GL_QUADS);
-	// 	glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
-	// 	glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
-	// 	glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
-	// 	glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
-	// glEnd();
-	// // LEFT
-	// glColor3d(1,0,1);
-	// glBegin(GL_QUADS);
-	// 	glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
-	// 	glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
-	// 	glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
-	// 	glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
-	// glEnd();
-	// // RIGHT
-	// glColor3d(1,1,0);
-	// glBegin(GL_QUADS);
-	// 	glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
-	// 	glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
-	// 	glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
-	// 	glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
-	// glEnd();
-	// // BACK
-	// glColor3d(0,1,1);
-	// glBegin(GL_QUADS);
-	// 	glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
-	// 	glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
-	// 	glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
-	// 	glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
-	// glEnd();
-	// // TOP
-	// glColor3d(0,0,1);
-	// glBegin(GL_QUADS);
-	// 	glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
-	// 	glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
-	// 	glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
-	// 	glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
-	// glEnd();
+	// BOTTOM
+	glColor3d(1,1,1);
+	glBegin(GL_QUADS);
+		glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
+		glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
+		glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
+		glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
+	glEnd();
+	// LEFT
+	glColor3d(1,0,1);
+	glBegin(GL_QUADS);
+		glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
+		glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
+		glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
+		glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
+	glEnd();
+	// RIGHT
+	glColor3d(1,1,0);
+	glBegin(GL_QUADS);
+		glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
+		glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
+		glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
+		glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
+	glEnd();
+	// BACK
+	glColor3d(0,1,1);
+	glBegin(GL_QUADS);
+		glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
+		glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
+		glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
+		glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
+	glEnd();
+	// TOP
+	glColor3d(0,0,1);
+	glBegin(GL_QUADS);
+		glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
+		glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
+		glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
+		glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
+	glEnd();
 
 	for (int i = 0; i < NUM_PARTICLES; i++) {
 		particles[i]->draw();
 	}
 
 	if (objmodel_ptr) {
-		glPushMatrix();
-		//glTranslatef(0,0,-11);
 		glmDraw(objmodel_ptr, GLM_SMOOTH);
-		glPopMatrix();
 	}
 }

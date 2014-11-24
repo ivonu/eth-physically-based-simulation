@@ -442,7 +442,7 @@ glmFirstPass(GLMmodel* model, FILE* file)
     char buf[128];
     
     /* make a default group */
-    group = glmAddGroup(model, "default");
+    group = glmAddGroup(model, (char*)"default");
     
     numvertices = numnormals = numtexcoords = numtriangles = 0;
     while(fscanf(file, "%s", buf) != EOF) {
@@ -816,9 +816,9 @@ glmUnitize(GLMmodel* model)
         model->vertices[3 * i + 0] -= cx;
         model->vertices[3 * i + 1] -= cy;
         model->vertices[3 * i + 2] -= cz;
-        model->vertices[3 * i + 0] *= scale;
-        model->vertices[3 * i + 1] *= scale;
-        model->vertices[3 * i + 2] *= scale;
+        model->vertices[3 * i + 0] *= scale * model->scale;
+        model->vertices[3 * i + 1] *= scale * model->scale;
+        model->vertices[3 * i + 2] *= scale * model->scale;
         model->vertices[3 * i + 0] += model->position[0];
         model->vertices[3 * i + 1] += model->position[1];
         model->vertices[3 * i + 2] += model->position[2];
@@ -1302,7 +1302,7 @@ glmDelete(GLMmodel* model)
  * filename - name of the file containing the Wavefront .OBJ format data.  
  */
 GLMmodel* 
-glmReadOBJ(char* filename, double x, double y, double z)
+glmReadOBJ(char* filename, double scale, double x, double y, double z)
 {
     GLMmodel* model;
     FILE* file;
@@ -1336,6 +1336,7 @@ glmReadOBJ(char* filename, double x, double y, double z)
     model->position[0]   = x;
     model->position[1]   = y;
     model->position[2]   = z;
+    model->scale         = scale;
     
     /* make a first pass through the file to get a count of the number
     of vertices, normals, texcoords & triangles */

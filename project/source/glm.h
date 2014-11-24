@@ -89,6 +89,7 @@ typedef struct _GLMmodel {
   GLMgroup*    groups;          /* linked list of groups */
 
   GLfloat position[3];          /* position of the model */
+  GLfloat scale;
 
 } GLMmodel;
 
@@ -194,7 +195,7 @@ glmDelete(GLMmodel* model);
  * x,y,z position
  */
 GLMmodel* 
-glmReadOBJ(char* filename, double x, double y, double z);
+glmReadOBJ(char* filename, double scale, double x, double y, double z);
 
 /* glmWriteOBJ: Writes a model description in Wavefront .OBJ format to
  * a file.

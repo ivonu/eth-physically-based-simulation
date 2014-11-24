@@ -12,9 +12,9 @@ class Scene
 {
 
 public:
+	Grid grid;
   	GLMmodel *objmodel_ptr;
 
-	Grid grid;
 	vector<Particle*> particles;
    vector<CollisionObject*> collision_bounds;
    vector<CollisionObject*> collision_objects;

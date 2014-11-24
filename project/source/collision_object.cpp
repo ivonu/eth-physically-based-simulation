@@ -32,7 +32,7 @@ Vector3d CollisionTriangle::getNormal(Vector3d point) {
 }
 
 bool CollisionTriangle::handleCollision(Particle* particle, double dt) {
-return false;
+	
 	Vector3d o = particle->position - (particle->speed*dt);
 
 	if ((particle->position-o).length() < 0.001)

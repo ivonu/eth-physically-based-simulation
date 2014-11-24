@@ -26,7 +26,7 @@ const double Scene::collision_damping = 1.0;
 const int Scene::timestep = 7;
 
 Scene::Scene(void) :
-	grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), initial_pos, h)
+	grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h)
 {
    Init();
 }

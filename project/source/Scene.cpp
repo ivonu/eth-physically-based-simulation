@@ -27,7 +27,8 @@ const double Scene::collision_damping = 1.0;
 const int Scene::timestep = 7;
 
 Scene::Scene(void) :
-	grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h)
+	grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h),
+	objmodel_ptr(NULL)
 {
    Init();
 }
@@ -276,8 +277,10 @@ void Scene::Render(void)
 		particles[i]->draw();
 	}
 
-	glPushMatrix();
+	if (objmodel_ptr) {
+		glPushMatrix();
 		//glTranslatef(0,0,-11);
-	  	glmDraw(objmodel_ptr, GLM_SMOOTH | GLM_MATERIAL);
-  	glPopMatrix();
+		glmDraw(objmodel_ptr, GLM_SMOOTH | GLM_MATERIAL);
+		glPopMatrix();
+	}
 }

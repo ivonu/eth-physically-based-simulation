@@ -47,12 +47,18 @@ Scene::~Scene(void) {
 	}
 }
 
-void Scene::Init(void)
-{
-   //Animation settings
-   pause=false;
+void Scene::Reset() {
 
-   for (int x = 0; x < NUM_PARTICLES_X; x++) {
+	
+	grid.removeParticles();
+	particles.clear();
+	collision_bounds.clear();
+	collision_objects.clear();
+	Init();
+}
+
+void Scene::InitParticles() {
+	for (int x = 0; x < NUM_PARTICLES_X; x++) {
 	   for (int y = 0; y < NUM_PARTICLES_Y; y++) {
 	   		for (int z = 0; z < NUM_PARTICLES_Z; z++) {
 	   			Particle* part = new Particle(initial_pos + Vector3d(x*d*1, y*d*1, -z*d*1));
@@ -66,14 +72,19 @@ void Scene::Init(void)
    			}
    		}
   	}
+}
+
+void Scene::InitBounds() {
 
   	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(0,1,0)));
   	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL, TOP_WALL, FRONT_WALL), Vector3d(0,-1,0)));
   	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(1,0,0)));
   	collision_bounds.push_back (new CollisionPlane (Vector3d(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(-1,0,0)));
   	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(0,0,-1)));
-  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, BACK_WALL), Vector3d(0,0,1)));
+  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, BACK_WALL), Vector3d(0,0,1)));	
+}
 
+void Scene::InitObjects() {	
   	// load mesh
   	if (!objmodel_ptr) {
 	    objmodel_ptr = glmReadOBJ((char*)"objects/bunny_200.obj", 0.75, 0.5, BOTTOM_WALL, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2);
@@ -104,6 +115,13 @@ void Scene::Init(void)
 			collision_objects.push_back(col_triangle);
 	    }
 	}
+}
+
+void Scene::Init(void)
+{
+   	InitParticles();  
+   	InitBounds();
+   	InitObjects(); 
 }
 
 double Scene::poly6_kernel(double r) {

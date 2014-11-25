@@ -99,11 +99,19 @@ void keyboard(unsigned char key, int x, int y)
         display();
         break;
     case 'q':
-        Camera.Move(F3dVector(0.0,-0.3,0.0));
+        Camera.Move(F3dVector(0.0,-0.1,0.0));
         display();
         break;
     case 'e':
-        Camera.Move(F3dVector(0.0,0.3,0.0));
+        Camera.Move(F3dVector(0.0,0.1,0.0));
+        display();
+        break;
+    case 'r':
+        sc->Reset();
+        display();
+        break;
+    case 'p':
+        sc->pause = !sc->pause;
         display();
         break;
     } 
@@ -130,6 +138,7 @@ int main(int argc, char** argv)
 
     Camera.Move(F3dVector(0.0, 2.0, 1.0));
     Camera.RotateX(-10.0);
+    Camera.MoveForwards(-3);
 
     // initialization
     initScene();

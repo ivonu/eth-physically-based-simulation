@@ -12,12 +12,6 @@ class Scene
 {
 
 public:
-	Grid grid;
-  	GLMmodel *objmodel_ptr;
-
-	vector<Particle*> particles;
-   vector<CollisionObject*> collision_bounds;
-   vector<CollisionObject*> collision_objects;
 
 	const static Vector3d initial_pos;
 	const static int NUM_PARTICLES_X;
@@ -37,13 +31,20 @@ public:
 	const static double rho0;
 	const static double k;
 	const static double mu;
-
 	const static int timestep;
 	const static double collision_damping;
+
+
+	Grid grid;
+  	GLMmodel *objmodel_ptr;
+
+	vector<Particle*> particles;
+   	vector<CollisionObject*> collision_bounds;
+   	vector<CollisionObject*> collision_objects;
+
+	bool pause;
 	
 protected:
-	//Animation
-	bool pause;
 
 public:
 	Scene(void);
@@ -51,6 +52,10 @@ public:
 
 	//Initialization
 	void Init(void);
+	void Reset();
+	void InitParticles();
+	void InitBounds();
+	void InitObjects();
 	void Render();
 	void Update();
 	vector<Particle*> findNeighboors (const vector<Particle*>& potential_neighboors, Particle* particle);

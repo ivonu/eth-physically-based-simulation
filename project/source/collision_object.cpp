@@ -1,6 +1,9 @@
 #include "collision_object.h"
 #include "scene.h"
 
+const double CollisionPlane::forceDistance = Scene::d;
+const double CollisionPlane::forceStrength = 1.0;
+
 CollisionPlane::CollisionPlane(Vector3d anchor, Vector3d normal) {
 	this->anchor = anchor;
 	this->normal = normal;
@@ -10,17 +13,39 @@ Vector3d CollisionPlane::getNormal(Vector3d point) {
 	return normal;
 }
 
+
+bool CollisionPlane::handleBoundaryForce(Particle* particle, double dt) {
+	double distToPlane = (normal | (particle->position - anchor));
+
+	// no collision
+	if (distToPlane >= forceDistance) 
+		return false;
+
+	// collision
+	if (distToPlane < 0)
+		return false;
+
+	// boundary force
+	float factor = 1.0 - (distToPlane / forceDistance); // linear
+	particle->force += normal * factor * forceStrength; // add the force
+	return true;
+}
+
 bool CollisionPlane::handleCollision(Particle* particle, double dt) {
 	double distToPlane = (normal | (particle->position - anchor));
 
+	// no collision
 	if (distToPlane >= 0) 
 		return false;
 
+	// collision
 	particle->position -= normal * distToPlane;
 	particle->speed = particle->speed.reflectionAt(normal) * Scene::collision_damping;
 	
 	return true;
 }
+
+
 
 CollisionTriangle::CollisionTriangle (Vector3d v1, Vector3d v2, Vector3d v3) {
 	this->v1 = v1;

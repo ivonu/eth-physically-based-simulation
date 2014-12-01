@@ -6,7 +6,7 @@
 
 const Vector3d Scene::initial_pos (-1.5, -1.5, -10.0);
 const int Scene::NUM_PARTICLES_X = 10;
-const int Scene::NUM_PARTICLES_Y = 15;
+const int Scene::NUM_PARTICLES_Y = 25;
 const int Scene::NUM_PARTICLES_Z = 20;
 const int Scene::NUM_PARTICLES = NUM_PARTICLES_X * NUM_PARTICLES_Y * NUM_PARTICLES_Z;
 const double Scene::BARRIER = -0.5;
@@ -30,6 +30,7 @@ Scene::Scene(void) :
 	grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h),
 	objmodel_ptr(NULL)
 {
+   pause = false;
    Init();
 }
 
@@ -54,6 +55,7 @@ void Scene::Reset() {
 	particles.clear();
 	collision_bounds.clear();
 	collision_objects.clear();
+	objmodel_ptr = NULL;
 	Init();
 }
 
@@ -212,14 +214,22 @@ void Scene::Update(void)
 
 	double dt = timestep / 1000.0;
 	for (int i = 0; i < NUM_PARTICLES; i++) {
+
+		// handle boundary forces
+		for (int c = 0; c < collision_bounds.size(); c++) {
+			collision_bounds[c]->handleBoundaryForce(particles[i], dt);
+		}
+
 		// update velocities and positions
 		particles[i]->speed += particles[i]->force * (dt / particles[i]->density);
 		particles[i]->position += (particles[i]->speed * dt);
 		
+		// handle object collisions
 		for (int c = 0; c < collision_objects.size(); c++) {
 			collision_objects[c]->handleCollision(particles[i], dt);
 		}
 
+		// handle boundary collisions
 		for (int c = 0; c < collision_bounds.size(); c++) {
 			collision_bounds[c]->handleCollision(particles[i], dt);
 		}

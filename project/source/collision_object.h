@@ -17,11 +17,16 @@ class CollisionPlane : public CollisionObject {
 		Vector3d normal;
 		Vector3d anchor;
 
+
+		static const double forceDistance;
+		static const double forceStrength;
+
 		CollisionPlane(Vector3d anchor, Vector3d normal);
 		~CollisionPlane() {};
 
 		Vector3d getNormal(Vector3d point);
 		bool handleCollision(Particle* particle, double dt);
+		bool handleBoundaryForce(Particle* particle, double dt);
 };
 
 class CollisionTriangle : public CollisionObject {

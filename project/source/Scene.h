@@ -39,7 +39,7 @@ public:
   	GLMmodel *objmodel_ptr;
 
 	vector<Particle*> particles;
-   	vector<CollisionObject*> collision_bounds;
+   	vector<CollisionPlane*> collision_bounds;
    	vector<CollisionObject*> collision_objects;
 
 	bool pause;

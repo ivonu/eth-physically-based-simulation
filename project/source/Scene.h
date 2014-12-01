@@ -3,6 +3,7 @@
 #include <vector>
 #include "particle.h"
 #include "grid.h"
+#include "collision_grid.h"
 #include "collision_object.h"
 #include "glm.h"
 
@@ -36,11 +37,12 @@ public:
 
 
 	Grid grid;
+   	CollisionGrid collision_grid;
   	GLMmodel *objmodel_ptr;
 
 	vector<Particle*> particles;
    	vector<CollisionPlane*> collision_bounds;
-   	vector<CollisionObject*> collision_objects;
+   	vector<CollisionTriangle*> collision_objects;
 
 	bool pause;
 	

@@ -28,6 +28,7 @@ const int Scene::timestep = 7;
 
 Scene::Scene(void) :
 	grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h),
+	collision_grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h),
 	objmodel_ptr(NULL)
 {
    pause = false;
@@ -115,6 +116,8 @@ void Scene::InitObjects() {
 			    		 objmodel_ptr->vertices[triangle.vindices[2]*3+2]));
 
 			collision_objects.push_back(col_triangle);
+			cout << "add grid stuff" << endl;
+			collision_grid.addCollisionObject(col_triangle);
 	    }
 	}
 }
@@ -225,8 +228,10 @@ void Scene::Update(void)
 		particles[i]->position += (particles[i]->speed * dt);
 		
 		// handle object collisions
-		for (int c = 0; c < collision_objects.size(); c++) {
-			collision_objects[c]->handleCollision(particles[i], dt);
+		vector<CollisionTriangle*> collision_triangles = collision_objects;
+		// vector<CollisionTriangle*> collision_triangles = collision_grid.getCollisionObjects(particles[i]);
+		for (int c = 0; c < collision_triangles.size(); c++) {
+			collision_triangles[c]->handleCollision(particles[i], dt);
 		}
 
 		// handle boundary collisions

@@ -6,13 +6,13 @@
 
 const Vector3d Scene::initial_pos (-1.5, -1.5, -10.0);
 const int Scene::NUM_PARTICLES_X = 10;
-const int Scene::NUM_PARTICLES_Y = 25;
-const int Scene::NUM_PARTICLES_Z = 20;
+const int Scene::NUM_PARTICLES_Y = 20;
+const int Scene::NUM_PARTICLES_Z = 10;
 const int Scene::NUM_PARTICLES = NUM_PARTICLES_X * NUM_PARTICLES_Y * NUM_PARTICLES_Z;
 const double Scene::BARRIER = -0.5;
 const double Scene::LEFT_WALL  = -1.5;
 const double Scene::RIGHT_WALL = 1.5;
-const double Scene::BACK_WALL  = -12;
+const double Scene::BACK_WALL  = -11;
 const double Scene::FRONT_WALL = -10;
 const double Scene::BOTTOM_WALL = -1.5;
 const double Scene::TOP_WALL = 1.5;
@@ -28,10 +28,11 @@ const int Scene::timestep = 7;
 
 Scene::Scene(void) :
 	grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h),
-	collision_grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h),
+	collision_grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h/2),
 	objmodel_ptr(NULL)
 {
    pause = false;
+   render_object = true;
    Init();
 }
 
@@ -53,6 +54,7 @@ void Scene::Reset() {
 
 	
 	grid.removeParticles();
+	collision_grid.removeCollisionObjects();
 	particles.clear();
 	collision_bounds.clear();
 	collision_objects.clear();
@@ -90,7 +92,7 @@ void Scene::InitBounds() {
 void Scene::InitObjects() {	
   	// load mesh
   	if (!objmodel_ptr) {
-	    objmodel_ptr = glmReadOBJ((char*)"objects/bunny_200.obj", 0.75, 0.5, BOTTOM_WALL, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2);
+	    objmodel_ptr = glmReadOBJ((char*)"objects/cube.obj", 0.55, 0.5, BOTTOM_WALL-0.01, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2);
 	    
 	    if (!objmodel_ptr)
 	        exit(0);
@@ -116,7 +118,6 @@ void Scene::InitObjects() {
 			    		 objmodel_ptr->vertices[triangle.vindices[2]*3+2]));
 
 			collision_objects.push_back(col_triangle);
-			cout << "add grid stuff" << endl;
 			collision_grid.addCollisionObject(col_triangle);
 	    }
 	}
@@ -220,7 +221,7 @@ void Scene::Update(void)
 
 		// handle boundary forces
 		for (int c = 0; c < collision_bounds.size(); c++) {
-			collision_bounds[c]->handleBoundaryForce(particles[i], dt);
+			// collision_bounds[c]->handleBoundaryForce(particles[i], dt);
 		}
 
 		// update velocities and positions
@@ -229,7 +230,8 @@ void Scene::Update(void)
 		
 		// handle object collisions
 		vector<CollisionTriangle*> collision_triangles = collision_objects;
-		// vector<CollisionTriangle*> collision_triangles = collision_grid.getCollisionObjects(particles[i]);
+		// vector<CollisionTriangle*> collision_triangles = collision_grid.getCollisionObjects(particles[i], dt);
+		// cout << "size: " << collision_triangles.size() << endl;
 		for (int c = 0; c < collision_triangles.size(); c++) {
 			collision_triangles[c]->handleCollision(particles[i], dt);
 		}
@@ -293,6 +295,7 @@ void Scene::Render(void)
 
 	if (objmodel_ptr) {
 		glColor3d(1,0.5,0);
-		glmDraw(objmodel_ptr, GLM_SMOOTH);
+		if (render_object)
+			glmDraw(objmodel_ptr, GLM_SMOOTH);
 	}
 }

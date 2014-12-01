@@ -45,6 +45,7 @@ public:
    	vector<CollisionTriangle*> collision_objects;
 
 	bool pause;
+	bool render_object;
 	
 protected:
 

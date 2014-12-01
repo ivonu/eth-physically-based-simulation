@@ -110,6 +110,10 @@ void keyboard(unsigned char key, int x, int y)
         sc->Reset();
         display();
         break;
+    case 't':
+        sc->render_object = !sc->render_object;
+        display();
+        break;
     case 'p':
         sc->pause = !sc->pause;
         display();

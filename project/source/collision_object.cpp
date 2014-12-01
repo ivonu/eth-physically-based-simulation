@@ -2,7 +2,7 @@
 #include "scene.h"
 
 const double CollisionPlane::forceDistance = Scene::d;
-const double CollisionPlane::forceStrength = 1.0;
+const double CollisionPlane::forceStrength = 0.1;
 
 CollisionPlane::CollisionPlane(Vector3d anchor, Vector3d normal) {
 	this->anchor = anchor;

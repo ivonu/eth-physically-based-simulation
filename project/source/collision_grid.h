@@ -15,6 +15,6 @@ class CollisionGrid {
 
 		void removeCollisionObjects();
 		void addCollisionObject(CollisionTriangle* object);
-		vector<CollisionTriangle*> getCollisionObjects(Particle* particle);
+		vector<CollisionTriangle*> getCollisionObjects(Particle* particle, double dt);
 
 };

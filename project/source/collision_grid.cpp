@@ -29,12 +29,12 @@ void CollisionGrid::addCollisionObject(CollisionTriangle* object) {
 	double max_y = max(object->v1.y(), max(object->v2.y(), object->v3.y()));
 	double max_z = max(object->v1.z(), max(object->v2.z(), object->v3.z()));
 
-	min_x = floor((min_x - lower_bound.x()) / h)-1;
-	min_y = floor((min_y - lower_bound.y()) / h)-1;
-	min_z = floor((min_z - lower_bound.z()) / h)-1;
-	max_x = ceil((max_x - lower_bound.x()) / h)+1;
-	max_y = ceil((max_y - lower_bound.y()) / h)+1;
-	max_z = ceil((max_z - lower_bound.z()) / h)+1;
+	min_x = floor((min_x - lower_bound.x()) / h);
+	min_y = floor((min_y - lower_bound.y()) / h);
+	min_z = floor((min_z - lower_bound.z()) / h);
+	max_x = ceil((max_x - lower_bound.x()) / h);
+	max_y = ceil((max_y - lower_bound.y()) / h);
+	max_z = ceil((max_z - lower_bound.z()) / h);
 
 	for (int x = min_x; x <= max_x; x++) {
 		for (int y = min_y; y <= max_y; y++) {
@@ -48,14 +48,15 @@ void CollisionGrid::addCollisionObject(CollisionTriangle* object) {
 
 vector<CollisionTriangle*> CollisionGrid::getCollisionObjects(Particle* particle, double dt) {
 
-	Vector3d old_pos = particle->position - (particle->speed*dt);
-	old_pos = (old_pos - lower_bound) / h;
+	// Vector3d old_pos = particle->position - (particle->speed*dt);
+	// old_pos = (old_pos - lower_bound) / h;
 
+	Vector3d old_pos = (particle->old_position - lower_bound) / h;
 	Vector3d pos = (particle->position - lower_bound) / h;
 
-	int min_x = floor(min(old_pos.x(), pos.x()))-1;   int max_x = ceil(max(old_pos.x(), pos.x()))+1;
-	int min_y = floor(min(old_pos.y(), pos.y()))-1;   int max_y = ceil(max(old_pos.y(), pos.y()))+1;
-	int min_z = floor(min(-old_pos.z(), -pos.z()))-1; int max_z = ceil(max(-old_pos.z(), -pos.z()))+1;
+	int min_x = floor(min(old_pos.x(), pos.x())); int max_x = ceil(max(old_pos.x(), pos.x()));
+	int min_y = floor(min(old_pos.y(), pos.y())); int max_y = ceil(max(old_pos.y(), pos.y()));
+	int min_z = floor(min(old_pos.z(), pos.z())); int max_z = ceil(max(old_pos.z(), pos.z()));
 
 	set<CollisionTriangle*> objects;
 	for (int x = max(0, min_x); x <= min((int)size.x(), max_x); x++) {

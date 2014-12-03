@@ -26,8 +26,8 @@ const double Scene::collision_damping = 01.0;
 int Scene::timestep = 4;
 
 Scene::Scene(void) :
-	grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h),
-	collision_grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h/2),
+	          grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, BACK_WALL), h),
+	collision_grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, BACK_WALL), h/8),
 	objmodel_ptr(NULL)
 {
    render_object = false;
@@ -92,7 +92,7 @@ void Scene::InitBounds() {
 void Scene::InitObjects() {	
   	// load mesh
   	if (!objmodel_ptr) {
-	    objmodel_ptr = glmReadOBJ((char*)"objects/cube.obj", 0.52, 0.0, BOTTOM_WALL-0.01, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2 + 0.01);
+	    objmodel_ptr = glmReadOBJ((char*)"objects/cube.obj", 0.55, 0.5, BOTTOM_WALL-0.01, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2 + 0.01);
 	    
 	    if (!objmodel_ptr)
 	        exit(0);
@@ -118,7 +118,7 @@ void Scene::InitObjects() {
 			    		 objmodel_ptr->vertices[triangle.vindices[2]*3+2]));
 
 			collision_objects.push_back(col_triangle);
-			// collision_grid.addCollisionObject(col_triangle);
+			collision_grid.addCollisionObject(col_triangle);
 	    }
 	}
 }
@@ -231,8 +231,9 @@ void Scene::Update(void)
 		// handle object collisions
 		if (collide_object) {
 			int iterations = 0;
-			vector<CollisionTriangle*> collision_triangles = collision_objects;
-			// vector<CollisionTriangle*> collision_triangles = collision_grid.getCollisionObjects(particles[i], dt);
+			// vector<CollisionTriangle*> collision_triangles = collision_objects;
+			vector<CollisionTriangle*> collision_triangles = collision_grid.getCollisionObjects(particles[i], dt);
+			// cout << collision_triangles.size() << endl;
 			for (int c = 0; c < collision_triangles.size(); c++) {
 				if (collision_triangles[c]->handleCollision(particles[i], dt)) {
 					if (++iterations >= 10)

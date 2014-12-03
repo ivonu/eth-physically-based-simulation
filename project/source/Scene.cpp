@@ -4,12 +4,11 @@
 #include <algorithm>
 #include <cmath>
 
-const Vector3d Scene::initial_pos (-1.5, -1.5, -10.0);
+const Vector3d Scene::initial_pos (-1.50, -1.5, -10.0);
 const int Scene::NUM_PARTICLES_X = 10;
 const int Scene::NUM_PARTICLES_Y = 20;
 const int Scene::NUM_PARTICLES_Z = 10;
 const int Scene::NUM_PARTICLES = NUM_PARTICLES_X * NUM_PARTICLES_Y * NUM_PARTICLES_Z;
-const double Scene::BARRIER = -0.5;
 const double Scene::LEFT_WALL  = -1.5;
 const double Scene::RIGHT_WALL = 1.5;
 const double Scene::BACK_WALL  = -11;
@@ -22,17 +21,19 @@ const double Scene::volume = d*d*d;
 const double Scene::rho0 = 1000.0;
 const double Scene::k = 1000.0;
 const double Scene::mu = 80;
-const double Scene::collision_damping = 0.99;
+const double Scene::collision_damping = 01.0;
 
-const int Scene::timestep = 7;
+int Scene::timestep = 4;
 
 Scene::Scene(void) :
 	grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h),
 	collision_grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h/2),
 	objmodel_ptr(NULL)
 {
-   pause = false;
-   render_object = true;
+   render_object = false;
+   collide_object = false;
+   boundary_force = false;
+   render_boundary = true;
    Init();
 }
 
@@ -52,7 +53,6 @@ Scene::~Scene(void) {
 
 void Scene::Reset() {
 
-	
 	grid.removeParticles();
 	collision_grid.removeCollisionObjects();
 	particles.clear();
@@ -81,18 +81,18 @@ void Scene::InitParticles() {
 
 void Scene::InitBounds() {
 
-  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(0,1,0)));
-  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL, TOP_WALL, FRONT_WALL), Vector3d(0,-1,0)));
-  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(1,0,0)));
-  	collision_bounds.push_back (new CollisionPlane (Vector3d(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(-1,0,0)));
-  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(0,0,-1)));
-  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL, BOTTOM_WALL, BACK_WALL), Vector3d(0,0,1)));	
+  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL,  BOTTOM_WALL, FRONT_WALL), Vector3d( 0, 1, 0)));
+  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL,  TOP_WALL,    FRONT_WALL), Vector3d( 0,-1, 0)));
+  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL,  BOTTOM_WALL, FRONT_WALL), Vector3d( 1, 0, 0)));
+  	collision_bounds.push_back (new CollisionPlane (Vector3d(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL), Vector3d(-1, 0, 0)));
+  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL,  BOTTOM_WALL, FRONT_WALL), Vector3d( 0, 0,-1)));
+  	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL,  BOTTOM_WALL, BACK_WALL),  Vector3d( 0, 0, 1)));	
 }
 
 void Scene::InitObjects() {	
   	// load mesh
   	if (!objmodel_ptr) {
-	    objmodel_ptr = glmReadOBJ((char*)"objects/cube.obj", 0.55, 0.5, BOTTOM_WALL-0.01, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2);
+	    objmodel_ptr = glmReadOBJ((char*)"objects/cube.obj", 0.52, 0.0, BOTTOM_WALL-0.01, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2 + 0.01);
 	    
 	    if (!objmodel_ptr)
 	        exit(0);
@@ -118,7 +118,7 @@ void Scene::InitObjects() {
 			    		 objmodel_ptr->vertices[triangle.vindices[2]*3+2]));
 
 			collision_objects.push_back(col_triangle);
-			collision_grid.addCollisionObject(col_triangle);
+			// collision_grid.addCollisionObject(col_triangle);
 	    }
 	}
 }
@@ -165,9 +165,6 @@ vector<Particle*> Scene::findNeighboors (const vector<Particle*>& potential_neig
 
 void Scene::Update(void)
 {
-	if (pause) {
-	  return;
-	}
 	vector< vector<Particle*> > neighboors (particles.size());
 	for (int i = 0; i < NUM_PARTICLES; i++) {
 		// find neighborhoods Ni(t)
@@ -220,25 +217,39 @@ void Scene::Update(void)
 	for (int i = 0; i < NUM_PARTICLES; i++) {
 
 		// handle boundary forces
-		for (int c = 0; c < collision_bounds.size(); c++) {
-			// collision_bounds[c]->handleBoundaryForce(particles[i], dt);
+		if (boundary_force) {
+			for (int c = 0; c < collision_bounds.size(); c++) {
+				collision_bounds[c]->handleBoundaryForce(particles[i], dt);
+			}
 		}
 
 		// update velocities and positions
+		particles[i]->old_position = particles[i]->position;
 		particles[i]->speed += particles[i]->force * (dt / particles[i]->density);
 		particles[i]->position += (particles[i]->speed * dt);
 		
 		// handle object collisions
-		vector<CollisionTriangle*> collision_triangles = collision_objects;
-		// vector<CollisionTriangle*> collision_triangles = collision_grid.getCollisionObjects(particles[i], dt);
-		// cout << "size: " << collision_triangles.size() << endl;
-		for (int c = 0; c < collision_triangles.size(); c++) {
-			collision_triangles[c]->handleCollision(particles[i], dt);
+		if (collide_object) {
+			int iterations = 0;
+			vector<CollisionTriangle*> collision_triangles = collision_objects;
+			// vector<CollisionTriangle*> collision_triangles = collision_grid.getCollisionObjects(particles[i], dt);
+			for (int c = 0; c < collision_triangles.size(); c++) {
+				if (collision_triangles[c]->handleCollision(particles[i], dt)) {
+					if (++iterations >= 10)
+						break;
+					c = 0;
+				}
+			}
 		}
 
 		// handle boundary collisions
+		int iterations = 0;	
 		for (int c = 0; c < collision_bounds.size(); c++) {
-			collision_bounds[c]->handleCollision(particles[i], dt);
+			if (collision_bounds[c]->handleCollision(particles[i], dt)) {
+				if (++iterations >= 10)
+					break;
+				c = 0;
+			}
 		}
 
 		grid.addParticle(particles[i]);
@@ -247,47 +258,48 @@ void Scene::Update(void)
 
 void Scene::Render(void)
 {
-
-	// BOTTOM
-	glColor3d(1,1,1);
-	glBegin(GL_QUADS);
-		glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
-		glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
-		glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
-		glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
-	glEnd();
-	// LEFT
-	glColor3d(1,0,1);
-	glBegin(GL_QUADS);
-		glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
-		glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
-		glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
-		glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
-	glEnd();
-	// RIGHT
-	glColor3d(1,1,0);
-	glBegin(GL_QUADS);
-		glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
-		glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
-		glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
-		glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
-	glEnd();
-	// BACK
-	glColor3d(0,1,1);
-	glBegin(GL_QUADS);
-		glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
-		glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
-		glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
-		glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
-	glEnd();
-	// TOP
-	glColor3d(0,0,1);
-	glBegin(GL_QUADS);
-		glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
-		glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
-		glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
-		glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
-	glEnd();
+	if (render_boundary) {
+		// BOTTOM
+		glColor3d(1,1,1);
+		glBegin(GL_QUADS);
+			glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
+			glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
+			glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
+			glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
+		glEnd();
+		// LEFT
+		glColor3d(1,0,1);
+		glBegin(GL_QUADS);
+			glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
+			glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
+			glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
+			glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
+		glEnd();
+		// RIGHT
+		glColor3d(1,1,0);
+		glBegin(GL_QUADS);
+			glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
+			glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
+			glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
+			glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
+		glEnd();
+		// BACK
+		glColor3d(0,1,1);
+		glBegin(GL_QUADS);
+			glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
+			glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
+			glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
+			glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
+		glEnd();
+		// TOP
+		glColor3d(0,0,1);
+		glBegin(GL_QUADS);
+			glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
+			glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
+			glVertex3f(RIGHT_WALL, TOP_WALL, BACK_WALL);
+			glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
+		glEnd();
+	}
 
 	for (int i = 0; i < NUM_PARTICLES; i++) {
 		particles[i]->draw();
@@ -295,7 +307,7 @@ void Scene::Render(void)
 
 	if (objmodel_ptr) {
 		glColor3d(1,0.5,0);
-		if (render_object)
+		if (collide_object && render_object)
 			glmDraw(objmodel_ptr, GLM_SMOOTH);
 	}
 }

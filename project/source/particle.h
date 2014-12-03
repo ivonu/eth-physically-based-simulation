@@ -4,6 +4,7 @@
 
 class Particle {
 	public:
+		Vector3d old_position;
 		Vector3d position;
 		Vector3d speed;
 		double density;

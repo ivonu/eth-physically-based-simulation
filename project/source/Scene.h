@@ -19,7 +19,6 @@ public:
 	const static int NUM_PARTICLES_Y;
 	const static int NUM_PARTICLES_Z;
 	const static int NUM_PARTICLES;
-	const static double BARRIER;
 	const static double LEFT_WALL;
 	const static double RIGHT_WALL;
 	const static double BACK_WALL;
@@ -32,8 +31,9 @@ public:
 	const static double rho0;
 	const static double k;
 	const static double mu;
-	const static int timestep;
 	const static double collision_damping;
+	
+	static int timestep;
 
 
 	Grid grid;
@@ -44,8 +44,10 @@ public:
    	vector<CollisionPlane*> collision_bounds;
    	vector<CollisionTriangle*> collision_objects;
 
-	bool pause;
+	bool collide_object;
 	bool render_object;
+	bool render_boundary;
+	bool boundary_force;
 	
 protected:
 

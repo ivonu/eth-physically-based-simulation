@@ -8,7 +8,6 @@ class CollisionObject {
 	public:
 		CollisionObject() {};
 		virtual ~CollisionObject() {};
-		virtual Vector3d getNormal(Vector3d point) {return Vector3d(0,0,0);};
 		virtual bool handleCollision(Particle* particle, double dt) { return false; }; 
 };
 
@@ -17,14 +16,12 @@ class CollisionPlane : public CollisionObject {
 		Vector3d normal;
 		Vector3d anchor;
 
-
 		static const double forceDistance;
 		static const double forceStrength;
 
 		CollisionPlane(Vector3d anchor, Vector3d normal);
 		~CollisionPlane() {};
 
-		Vector3d getNormal(Vector3d point);
 		bool handleCollision(Particle* particle, double dt);
 		bool handleBoundaryForce(Particle* particle, double dt);
 };
@@ -37,6 +34,5 @@ class CollisionTriangle : public CollisionObject {
 		CollisionTriangle (Vector3d v1, Vector3d v2, Vector3d v3);
 		~CollisionTriangle() {};
 
-		Vector3d getNormal(Vector3d point);
 		bool handleCollision(Particle* particle, double dt);
 };

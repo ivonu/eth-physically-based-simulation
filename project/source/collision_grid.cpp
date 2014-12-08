@@ -1,5 +1,6 @@
 #include "collision_grid.h"
 #include <set>
+#include <algorithm>
 
 CollisionGrid::CollisionGrid(Vector3d size, Vector3d lower_bound, double h)
 {

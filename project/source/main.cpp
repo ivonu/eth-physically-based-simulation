@@ -1,6 +1,7 @@
 #include "GLUT/glut.h"
 #include "scene.h"
 #include "camera.h"
+#include <algorithm>
 
 Scene *sc = NULL;
 CCamera Camera;

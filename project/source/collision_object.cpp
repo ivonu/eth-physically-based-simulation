@@ -27,30 +27,16 @@ bool CollisionPlane::handleBoundaryForce(Particle* particle, double dt) {
 }
 
 bool CollisionPlane::handleCollision(Particle* particle, double dt) {
-	// no collision
-	if ((normal | (particle->position - anchor)) >= 0)
-		return false;
+    double distToPlane = (normal | (particle->position - anchor));
 
-	// distance from old position to position
-	double dist = (particle->position - particle->old_position).length();
+    if (distToPlane >= 0) 
+        return false;
 
-	// normalized direction
-	Vector3d d = (particle->position - particle->old_position).normalized();
-
-	// distance from o to hit point
-	double t = -((particle->old_position - anchor) | normal) / (d | normal);
-
-	// hit point
-	Vector3d x = particle->old_position + t*d;
-
-	particle->speed = particle->speed.reflectionAt(normal) * Scene::collision_damping;
-	particle->position = x + particle->speed.normalized() * (dist-t) * Scene::collision_damping;
-	particle->old_position = x;
-
-	return true;
+    particle->position -= normal * distToPlane;
+    particle->speed = particle->speed.reflectionAt(normal) * Scene::collision_damping;
+    
+    return true;
 }
-
-
 
 CollisionTriangle::CollisionTriangle (Vector3d v1, Vector3d v2, Vector3d v3) {
 	this->v1 = v1;

@@ -27,8 +27,8 @@ const double Scene::collision_damping = 1.0;
 int Scene::timestep = 4;
 
 Scene::Scene(void) :
-	          grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, BACK_WALL), h),
-	collision_grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, BACK_WALL), h/8),
+	          grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, FRONT_WALL), h),
+    collision_grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, BACK_WALL), h/8),
 	objmodel_ptr(NULL)
 {
    render_object = false;
@@ -227,12 +227,7 @@ void Scene::Update(void)
 		// update velocities and positions
 		particles[i]->old_position = particles[i]->position;
 		particles[i]->speed += particles[i]->force * (dt / particles[i]->density);
-		if (particles[i]->speed.length() > 0.01)
-			particles[i]->position += (particles[i]->speed * dt);
-		
-		// cout << "pos: " << particles[i]->position.x() << " / " << particles[i]->position.y() << " / " << particles[i]->position.z() << endl;
-		// cout << "speed: " << particles[i]->speed.x() << " / " << particles[i]->speed.y() << " / " << particles[i]->speed.z() << endl;
-		// cout << "speed-length: " << particles[i]->speed.length() << endl;
+		particles[i]->position += (particles[i]->speed * dt);
 
 		// handle object collisions
 		if (collide_object) {
@@ -249,13 +244,8 @@ void Scene::Update(void)
 		}
 
 		// handle boundary collisions
-		int iterations = 0;	
 		for (int c = 0; c < collision_bounds.size(); c++) {
-			if (collision_bounds[c]->handleCollision(particles[i], dt)) {
-				if (++iterations >= 10)
-					break;
-				c = 0;
-			}
+			collision_bounds[c]->handleCollision(particles[i], dt);
 		}
 
 		grid.addParticle(particles[i]);

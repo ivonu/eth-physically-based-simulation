@@ -5,7 +5,7 @@
 Scene *sc = NULL;
 CCamera Camera;
 
-bool play = true;
+bool play = false  ;
 int fps = 30;
 
 void display(void)
@@ -148,11 +148,11 @@ void keyboard(unsigned char key, int x, int y)
         // fps
         case 'b':
             fps = min(60, fps+1);
-            cout << "fps: " << fps << endl;
+            cout << "fps: " << 1000/fps << endl;
             break;    
         case 'v':
             fps = max(1, fps-1); 
-            cout << "fps: " << fps << endl;
+            cout << "fps: " << 1000/fps << endl;
             break;
 
         // pause / move step

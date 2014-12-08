@@ -4,9 +4,10 @@
 #include <algorithm>
 #include <cmath>
 
+// const Vector3d Scene::initial_pos (-1.5, 0.5, -10.0);
 const Vector3d Scene::initial_pos (-1.50, -1.5, -10.0);
 const int Scene::NUM_PARTICLES_X = 10;
-const int Scene::NUM_PARTICLES_Y = 20;
+const int Scene::NUM_PARTICLES_Y = 30;
 const int Scene::NUM_PARTICLES_Z = 10;
 const int Scene::NUM_PARTICLES = NUM_PARTICLES_X * NUM_PARTICLES_Y * NUM_PARTICLES_Z;
 const double Scene::LEFT_WALL  = -1.5;
@@ -21,7 +22,7 @@ const double Scene::volume = d*d*d;
 const double Scene::rho0 = 1000.0;
 const double Scene::k = 1000.0;
 const double Scene::mu = 80;
-const double Scene::collision_damping = 01.0;
+const double Scene::collision_damping = 1.0;
 
 int Scene::timestep = 4;
 
@@ -92,7 +93,7 @@ void Scene::InitBounds() {
 void Scene::InitObjects() {	
   	// load mesh
   	if (!objmodel_ptr) {
-	    objmodel_ptr = glmReadOBJ((char*)"objects/cube.obj", 0.55, 0.5, BOTTOM_WALL-0.01, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2 + 0.01);
+	    objmodel_ptr = glmReadOBJ((char*)"objects/bunny_40k.obj", 0.55, 0.5, BOTTOM_WALL-0.01, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2 + 0.01);
 	    
 	    if (!objmodel_ptr)
 	        exit(0);
@@ -226,14 +227,18 @@ void Scene::Update(void)
 		// update velocities and positions
 		particles[i]->old_position = particles[i]->position;
 		particles[i]->speed += particles[i]->force * (dt / particles[i]->density);
-		particles[i]->position += (particles[i]->speed * dt);
+		if (particles[i]->speed.length() > 0.01)
+			particles[i]->position += (particles[i]->speed * dt);
 		
+		// cout << "pos: " << particles[i]->position.x() << " / " << particles[i]->position.y() << " / " << particles[i]->position.z() << endl;
+		// cout << "speed: " << particles[i]->speed.x() << " / " << particles[i]->speed.y() << " / " << particles[i]->speed.z() << endl;
+		// cout << "speed-length: " << particles[i]->speed.length() << endl;
+
 		// handle object collisions
 		if (collide_object) {
 			int iterations = 0;
 			// vector<CollisionTriangle*> collision_triangles = collision_objects;
 			vector<CollisionTriangle*> collision_triangles = collision_grid.getCollisionObjects(particles[i], dt);
-			// cout << collision_triangles.size() << endl;
 			for (int c = 0; c < collision_triangles.size(); c++) {
 				if (collision_triangles[c]->handleCollision(particles[i], dt)) {
 					if (++iterations >= 10)

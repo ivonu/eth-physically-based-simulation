@@ -4,11 +4,11 @@
 #include <algorithm>
 #include <cmath>
 
-// const Vector3d Scene::initial_pos (-1.5, 0.5, -10.0);
-const Vector3d Scene::initial_pos (-1.50, -1.5, -10.0);
-const int Scene::NUM_PARTICLES_X = 10;
-const int Scene::NUM_PARTICLES_Y = 30;
-const int Scene::NUM_PARTICLES_Z = 10;
+const Vector3d Scene::initial_pos (0.0, -0.5, -10.0);
+// const Vector3d Scene::initial_pos (-1.50, -1.5, -10.0);
+const int Scene::NUM_PARTICLES_X = 0;
+const int Scene::NUM_PARTICLES_Y = 0;
+const int Scene::NUM_PARTICLES_Z = 0;
 const int Scene::NUM_PARTICLES = NUM_PARTICLES_X * NUM_PARTICLES_Y * NUM_PARTICLES_Z;
 const double Scene::LEFT_WALL  = -1.5;
 const double Scene::RIGHT_WALL = 1.5;
@@ -39,7 +39,7 @@ Scene::Scene(void) :
 }
 
 Scene::~Scene(void) {
-	for (int i = 0; i < NUM_PARTICLES; i++) {
+	for (int i = 0; i < particles.size(); i++) {
 		delete particles[i];
 	}
 	
@@ -80,6 +80,20 @@ void Scene::InitParticles() {
   	}
 }
 
+void Scene::addParticles (double x, double y, double z, int num) {
+	for (double i = max(LEFT_WALL, x-d*num); i <= min(RIGHT_WALL, x+d*num); i = i+d) {
+		for (double j = max(BOTTOM_WALL, y-d*num); j <= min(TOP_WALL, y+d*num); j = j+d) {
+			for (double k = max(BACK_WALL, z-d*num); k <= min(FRONT_WALL, z+d*num); k = k+d) {
+
+	   			Particle* part = new Particle(Vector3d(i, j, k));
+   				particles.push_back(part);
+				grid.addParticle(part);
+			}
+		}
+	}	
+}
+
+
 void Scene::InitBounds() {
 
   	collision_bounds.push_back (new CollisionPlane (Vector3d(LEFT_WALL,  BOTTOM_WALL, FRONT_WALL), Vector3d( 0, 1, 0)));
@@ -93,7 +107,7 @@ void Scene::InitBounds() {
 void Scene::InitObjects() {	
   	// load mesh
   	if (!objmodel_ptr) {
-	    objmodel_ptr = glmReadOBJ((char*)"objects/bunny_40k.obj", 0.55, 0.5, BOTTOM_WALL-0.01, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2 + 0.01);
+	    objmodel_ptr = glmReadOBJ((char*)"objects/bunny_40k.obj", 0.9, 0.50, BOTTOM_WALL-0.01, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2 + 0.01);
 	    
 	    if (!objmodel_ptr)
 	        exit(0);
@@ -167,7 +181,7 @@ vector<Particle*> Scene::findNeighboors (const vector<Particle*>& potential_neig
 void Scene::Update(void)
 {
 	vector< vector<Particle*> > neighboors (particles.size());
-	for (int i = 0; i < NUM_PARTICLES; i++) {
+	for (int i = 0; i < particles.size(); i++) {
 		// find neighborhoods Ni(t)
 		neighboors[i] = findNeighboors(grid.getNeighboors(particles[i]), particles[i]);
 		// neighboors[i] = findNeighboors(particles, particles[i]);
@@ -184,7 +198,7 @@ void Scene::Update(void)
 	}
 
 	// compute forces
-	for (int i = 0; i < NUM_PARTICLES; i++) {
+	for (int i = 0; i < particles.size(); i++) {
 
 		Vector3d pressure_force (0.0,0.0,0.0);
 		Vector3d viscosity_force (0.0,0.0,0.0);
@@ -215,7 +229,7 @@ void Scene::Update(void)
 	grid.removeParticles();
 
 	double dt = timestep / 1000.0;
-	for (int i = 0; i < NUM_PARTICLES; i++) {
+	for (int i = 0; i < particles.size(); i++) {
 
 		// handle boundary forces
 		if (boundary_force) {
@@ -297,7 +311,7 @@ void Scene::Render(void)
 		glEnd();
 	}
 
-	for (int i = 0; i < NUM_PARTICLES; i++) {
+	for (int i = 0; i < particles.size(); i++) {
 		particles[i]->draw();
 	}
 

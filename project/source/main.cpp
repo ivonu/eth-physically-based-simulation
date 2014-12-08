@@ -175,6 +175,35 @@ void keyboard(unsigned char key, int x, int y)
     } 
 }
 
+void mouseEvent (int button, int state, int x, int y) {
+
+  if (state == GLUT_DOWN) {
+
+        GLint viewport[4]; //var to hold the viewport info
+        GLdouble modelview[16]; //var to hold the modelview info
+        GLdouble projection[16]; //var to hold the projection matrix info
+        GLdouble worldX, worldY, worldZ; //variables to hold world x,y,z coordinates
+
+        glGetDoublev( GL_MODELVIEW_MATRIX, modelview ); //get the modelview info
+        glGetDoublev( GL_PROJECTION_MATRIX, projection ); //get the projection matrix info
+        glGetIntegerv( GL_VIEWPORT, viewport ); //get the viewport info
+
+        y = viewport[3]-y;
+
+        //get the world coordinates from the screen coordinates
+        gluUnProject( x, y, 0, modelview, projection, viewport, &worldX, &worldY, &worldZ);
+        Vector3d p1 (worldX, worldY, worldZ);
+
+        gluUnProject( x, y, 1, modelview, projection, viewport, &worldX, &worldY, &worldZ);
+        Vector3d p2 (worldX, worldY, worldZ);
+
+        Vector3d d = (p2-p1).normalized();
+        Vector3d p = p1 + d*-(-10.5 - p1.z());
+
+        sc->addParticles(p.x(), p.y(), p.z(), 2);
+    }
+}
+
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv); 
@@ -193,6 +222,7 @@ int main(int argc, char** argv)
     glutTimerFunc(0, physical_timer, 0);
     glutTimerFunc(0, render_timer, 1);
     glutKeyboardFunc(keyboard);
+    glutMouseFunc(mouseEvent);
 
     Camera.Move(F3dVector(0.0, 2.0, 1.0));
     Camera.RotateX(-10.0);

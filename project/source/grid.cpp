@@ -1,6 +1,9 @@
 #include "grid.h"
 
-Grid::Grid(Vector3d size, Vector3d lower_bound, double h)
+Grid::Grid(Vector3d size, Vector3d lower_bound, double h) : 
+	num_of_points ((size.x()/h)*(size.y()/h)*(size.z()/h)),
+	values (num_of_points,1),
+	points (num_of_points,3)
 {
 	this->size = size / h;
 	this->lower_bound = lower_bound;
@@ -11,6 +14,19 @@ Grid::Grid(Vector3d size, Vector3d lower_bound, double h)
 	this->size.z() = ceil(this->size.z());
 
 	this->grid = vector< vector<Particle*> >((this->size.x()+1) * (this->size.y()+1) * (this->size.z()+1));
+
+
+	for (int x = 0; x < size.x(); x++) {
+		for (int y = 0; y < size.y(); y++) {
+			for (int z = 0; z < size.z(); z++) {
+				int array_pos = x*size.y()*size.z() + y*size.z() + z;
+				Vector3d real_world_pos ((Vector3d(x,y,z) + lower_bound) * h);
+				points(array_pos,0) = real_world_pos.x();
+				points(array_pos,1) = real_world_pos.y();
+				points(array_pos,2) = real_world_pos.z();
+			}
+		}
+	}
 }
 
 void Grid::removeParticles() {
@@ -51,4 +67,31 @@ vector<Particle*> Grid::getNeighboors(Particle* particle) {
 	}
 
 	return neighboors;
+}
+
+
+double Grid::poly6_kernel(double r) {
+	if (r < 0 || r > h) 
+		return 0;
+
+	return (315.0 / (64.0 * M_PI * pow (h, 9))) * pow(h*h - r*r, 3);
+}
+
+void Grid::calculateColors() {
+	for (int x = 0; x < size.x(); x++) {
+		for (int y = 0; y < size.y(); y++) {
+			for (int z = 0; z < size.z(); z++) {
+				int array_pos = x*size.y()*size.z() + y*size.z() + z;
+				Particle part(Vector3d(x,y,z));
+				vector<Particle *> particles = getNeighboors(&part);
+
+				for (int i = 0; i < particles.size(); i++) {
+					if ((part.position - particles[i]->position).length() <= h) {
+						values(array_pos) += (particles[i]->mass / particles[i]->density) * poly6_kernel((Vector3d(x,y,z)-particles[i]->position).length());
+					}
+				}
+
+			}
+		}
+	}
 }

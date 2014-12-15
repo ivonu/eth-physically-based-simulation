@@ -14,6 +14,8 @@ class Particle {
 		double rho0;
 		Vector3d color;
 
+		bool ice;
+
 		Particle() {};
 		Particle (Vector3d position);
 		void draw();

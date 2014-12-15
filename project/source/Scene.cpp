@@ -3,12 +3,14 @@
 #include "GLUT/glut.h"
 #include <algorithm>
 #include <cmath>
+#include "marching_cubes.h"
+#include "Eigen/Core"
 
-const Vector3d Scene::initial_pos (0.0, -0.5, -10.0);
-// const Vector3d Scene::initial_pos (-1.50, -1.5, -10.0);
-const int Scene::NUM_PARTICLES_X = 0;
-const int Scene::NUM_PARTICLES_Y = 0;
-const int Scene::NUM_PARTICLES_Z = 0;
+// const Vector3d Scene::initial_pos (0.0, -0.5, -10.0);
+const Vector3d Scene::initial_pos (-1.50, -1.5, -10.0);
+const int Scene::NUM_PARTICLES_X = 10;
+const int Scene::NUM_PARTICLES_Y = 30;
+const int Scene::NUM_PARTICLES_Z = 10;
 const int Scene::NUM_PARTICLES = NUM_PARTICLES_X * NUM_PARTICLES_Y * NUM_PARTICLES_Z;
 const double Scene::LEFT_WALL  = -1.5;
 const double Scene::RIGHT_WALL = 1.5;
@@ -68,16 +70,20 @@ void Scene::InitParticles() {
 	   for (int y = 0; y < NUM_PARTICLES_Y; y++) {
 	   		for (int z = 0; z < NUM_PARTICLES_Z; z++) {
 	   			Particle* part = new Particle(initial_pos + Vector3d(x*d*1, y*d*1, -z*d*1));
-   		// 		if (y >= NUM_PARTICLES_Y/2) {
-   		// 			part->rho0 = 1500;
-					// part->mass = Scene::volume * part->rho0;
-					// part->color = Vector3d(0,1,0);
-   		// 		}
+
+	   			if (rand() % 100 < 0) {
+					part->rho0 = 917;
+					part->mass = Scene::volume * part->rho0;
+					part->color = Vector3d(0,0,1);
+	   				part->ice = true;
+	   			}
+
    				particles.push_back(part);
 				grid.addParticle(part);
    			}
    		}
   	}
+
 }
 
 void Scene::addParticles (double x, double y, double z, int num) {
@@ -86,6 +92,9 @@ void Scene::addParticles (double x, double y, double z, int num) {
 			for (double k = max(BACK_WALL, z-d*num); k <= min(FRONT_WALL, z+d*num); k = k+d) {
 
 	   			Particle* part = new Particle(Vector3d(i, j, k));
+				part->rho0 = 2000;
+				part->mass = Scene::volume * part->rho0;
+				part->color = Vector3d(0,1,0);
    				particles.push_back(part);
 				grid.addParticle(part);
 			}
@@ -315,9 +324,39 @@ void Scene::Render(void)
 		particles[i]->draw();
 	}
 
+	grid.calculateColors();
+
+	//Eigen::PlainObjectBase<> vertices;
+	// Eigen::PlainObjectBase<> faces;
+
+	// Eigen::Matrix<ScalarType, Eigen::Dynamic, 3> vertices;
+	// Eigen::Matrix<ScalarType, Eigen::Dynamic, 3> faces;
+
+	// igl::marching_cubes<ScalarType, ScalarType> (
+	//     &(grid.values),
+	//     &(grid.points),
+	//     (int)grid.size.x(),
+	//     (int)grid.size.y(),
+	//     (int)grid.size.z(),
+	//     &vertices,
+	//     &faces);
+
+
 	if (objmodel_ptr) {
 		glColor3d(1,0.5,0);
 		if (collide_object && render_object)
 			glmDraw(objmodel_ptr, GLM_SMOOTH);
 	}
+
+
+  Eigen::Matrix<ScalarType, Eigen::Dynamic, 3> vertices;
+  Eigen::Matrix<IndexType, Eigen::Dynamic, 3> faces;
+
+  igl::marching_cubes(grid.values, 
+                      grid.points, 
+                      grid.size.x(),
+                      grid.size.y(),
+                      grid.size.z(),
+                      vertices,
+                      faces);
 }

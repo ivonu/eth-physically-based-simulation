@@ -228,6 +228,8 @@ int main(int argc, char** argv)
     Camera.RotateX(-10.0);
     Camera.MoveForwards(-3);
 
+    glutSetCursor(GLUT_CURSOR_SPRAY);
+
     // initialization
     initScene();
 

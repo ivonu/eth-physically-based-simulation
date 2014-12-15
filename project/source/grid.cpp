@@ -16,14 +16,15 @@ Grid::Grid(Vector3d size, Vector3d lower_bound, double h) :
 	this->grid = vector< vector<Particle*> >((this->size.x()+1) * (this->size.y()+1) * (this->size.z()+1));
 
 
-	for (int x = 0; x < size.x(); x++) {
-		for (int y = 0; y < size.y(); y++) {
-			for (int z = 0; z < size.z(); z++) {
-				int array_pos = x*size.y()*size.z() + y*size.z() + z;
-				Vector3d real_world_pos ((Vector3d(x,y,z) + lower_bound) * h);
+	for (int x = 0; x < this->size.x(); x++) {
+		for (int y = 0; y < this->size.y(); y++) {
+			for (int z = 0; z < this->size.z(); z++) {
+				int array_pos = x*this->size.y()*this->size.z() + y*this->size.z() + z;
+				Vector3d real_world_pos ((Vector3d(x,y,z) * h) + lower_bound);
 				points(array_pos,0) = real_world_pos.x();
 				points(array_pos,1) = real_world_pos.y();
 				points(array_pos,2) = real_world_pos.z();
+				cout << "grid: " << real_world_pos.x() << " / " << real_world_pos.y() << " / " << real_world_pos.z() << endl;
 			}
 		}
 	}
@@ -82,14 +83,23 @@ void Grid::calculateColors() {
 		for (int y = 0; y < size.y(); y++) {
 			for (int z = 0; z < size.z(); z++) {
 				int array_pos = x*size.y()*size.z() + y*size.z() + z;
-				Particle part(Vector3d(x,y,z));
+				Vector3d pos = Vector3d(x,y,z)*h + lower_bound;
+				Particle part(pos);
 				vector<Particle *> particles = getNeighboors(&part);
 
+				values[array_pos] = -0.50;
 				for (int i = 0; i < particles.size(); i++) {
-					if ((part.position - particles[i]->position).length() <= h) {
-						values(array_pos) += (particles[i]->mass / particles[i]->density) * poly6_kernel((Vector3d(x,y,z)-particles[i]->position).length());
+
+					if ((part.position - particles[i]->position).length() <= h) {	
+						double s = (particles[i]->mass / particles[i]->density) * poly6_kernel((pos-particles[i]->position).length());
+						// cout << "particles[i]->mass: " << particles[i]->mass << endl;
+						// cout << "particles[i]->density: " << particles[i]->density << endl;
+						// cout << "s: " << s << endl;
+						values[array_pos] += s;
+						// exit(1);
 					}
 				}
+				// cout << "color-field: " << values[array_pos] << endl;
 
 			}
 		}

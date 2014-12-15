@@ -5,6 +5,7 @@
 #include <cmath>
 #include "marching_cubes.h"
 #include "Eigen/Core"
+#include "MCTables.hh"
 
 // const Vector3d Scene::initial_pos (0.0, -0.5, -10.0);
 const Vector3d Scene::initial_pos (-1.50, -1.5, -10.0);
@@ -359,4 +360,41 @@ void Scene::Render(void)
                       grid.size.z(),
                       vertices,
                       faces);
+
+  	// cout << "grid.values: " << grid.values.rows() << endl;
+  	// cout << "grid.points: " << grid.points.rows() << endl;
+  	// cout << "faces.rows: " << faces.rows() << endl;
+    for (int i = 0; i < faces.rows(); i++) {
+    	int v1_ind = faces(i,0);
+    	double v1_x = vertices(v1_ind, 0);
+    	double v1_y = vertices(v1_ind, 1);
+    	double v1_z = vertices(v1_ind, 2);
+    	    	
+    	int v2_ind = faces(i,1);
+    	double v2_x = vertices(v2_ind, 0);
+    	double v2_y = vertices(v2_ind, 1);
+    	double v2_z = vertices(v1_ind, 2);
+
+	    int v3_ind = faces(i,2);
+    	double v3_x = vertices(v3_ind, 0);
+    	double v3_y = vertices(v3_ind, 1);
+    	double v3_z = vertices(v3_ind, 2);
+
+		GLfloat v1[3] = { v1_x, v1_y, v1_z };
+		GLfloat v2[3] = { v2_x, v2_y, v2_z };
+		GLfloat v3[3] = { v3_x, v3_y, v3_z };
+
+
+		// cout << "f: " << v1_ind << " / " << v2_ind << " / " << v3_ind << endl;
+
+		// cout << "v1: " << v1_x << " / " << v1_y << " / " << v1_z << endl;
+		// cout << "v2: " << v2_x << " / " << v2_y << " / " << v2_z << endl;
+		// cout << "v3: " << v3_x << " / " << v3_y << " / " << v3_z << endl;
+
+	    glBegin(GL_TRIANGLES);
+	        glVertex3fv(&v1[0]);
+	        glVertex3fv(&v2[0]);
+	        glVertex3fv(&v3[0]);
+	    glEnd();
+    }
 }

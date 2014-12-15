@@ -232,6 +232,7 @@ int main(int argc, char** argv)
 
     // initialization
     initScene();
+    sc->Update();
 
     // Starts the program.
     glutMainLoop();

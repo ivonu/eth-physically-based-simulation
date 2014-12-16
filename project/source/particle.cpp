@@ -6,7 +6,7 @@ Particle::Particle(Vector3d position) {
 	this->position = position;
 	this->rho0 = Scene::rho0;
 	this->mass = Scene::volume * rho0;
-	this->color = Vector3d(1,0,0);
+	this->color = Vector3d(0.2,0.2,1);
 }
 
 void Particle::draw() {

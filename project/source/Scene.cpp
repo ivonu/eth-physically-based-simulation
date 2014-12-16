@@ -73,7 +73,7 @@ void Scene::InitParticles() {
    			}
    		}
   	}
-
+	cout << "num particles: " << particles.size() << endl;
 }
 
 void Scene::addParticles (double x, double y, double z, int num, int button) {
@@ -85,18 +85,19 @@ void Scene::addParticles (double x, double y, double z, int num, int button) {
 	   			if (button == GLUT_RIGHT_BUTTON) {
 					part->rho0 = 2000;
 					part->mass = Scene::volume * part->rho0;
-					part->color = Vector3d(0,1,0);
+					part->color = Vector3d(0.3,0.3,0.3);
 				}
 				if (button == GLUT_MIDDLE_BUTTON) {
 					part->rho0 = 500;
 					part->mass = Scene::volume * part->rho0;
-					part->color = Vector3d(0,0,1);	
+					part->color = Vector3d(0.7,0.7,1);	
 				}
    				particles.push_back(part);
 				grid.addParticle(part);
 			}
 		}
 	}	
+	cout << "num particles: " << particles.size() << endl;
 }
 
 

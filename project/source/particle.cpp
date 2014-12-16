@@ -7,7 +7,6 @@ Particle::Particle(Vector3d position) {
 	this->rho0 = Scene::rho0;
 	this->mass = Scene::volume * rho0;
 	this->color = Vector3d(1,0,0);
-	this->ice = false;
 }
 
 void Particle::draw() {
@@ -15,9 +14,6 @@ void Particle::draw() {
 	glPushMatrix();
 		glColor3d(color.x(), color.y(), color.z());
         glTranslated(position.x(), position.y(), position.z());
-        if (this->ice) 
-        	glutSolidSphere(Scene::d*0.8, 6, 3);
-        else 
-        	glutSolidSphere(Scene::d*0.4, 6, 3);
+    	glutSolidSphere(Scene::d*0.4, 8, 2);
     glPopMatrix(); 
 }

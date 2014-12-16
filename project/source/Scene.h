@@ -64,7 +64,7 @@ public:
 	void Render();
 	void Update();
 	vector<Particle*> findNeighboors (const vector<Particle*>& potential_neighboors, Particle* particle);
-	void addParticles (double x, double y, double z, int num);
+	void addParticles (double x, double y, double z, int num, int button);
 
 	double poly6_kernel(double r);
 	double spiky_kernel_gradient(double r);

@@ -3,14 +3,11 @@
 #include "GLUT/glut.h"
 #include <algorithm>
 #include <cmath>
-#include "marching_cubes.h"
-#include "Eigen/Core"
-#include "MCTables.hh"
 
 // const Vector3d Scene::initial_pos (0.0, -0.5, -10.0);
-const Vector3d Scene::initial_pos (-1.50, -1.5, -10.0);
+const Vector3d Scene::initial_pos (-0.5, 0.0, -10.0);
 const int Scene::NUM_PARTICLES_X = 10;
-const int Scene::NUM_PARTICLES_Y = 30;
+const int Scene::NUM_PARTICLES_Y = 15;
 const int Scene::NUM_PARTICLES_Z = 10;
 const int Scene::NUM_PARTICLES = NUM_PARTICLES_X * NUM_PARTICLES_Y * NUM_PARTICLES_Z;
 const double Scene::LEFT_WALL  = -1.5;
@@ -34,8 +31,8 @@ Scene::Scene(void) :
     collision_grid(Vector3d(RIGHT_WALL-LEFT_WALL, TOP_WALL-BOTTOM_WALL, FRONT_WALL-BACK_WALL), Vector3d(LEFT_WALL, BOTTOM_WALL, BACK_WALL), h/8),
 	objmodel_ptr(NULL)
 {
-   render_object = false;
-   collide_object = false;
+   render_object = true;
+   collide_object = true;
    boundary_force = false;
    render_boundary = true;
    Init();
@@ -71,14 +68,6 @@ void Scene::InitParticles() {
 	   for (int y = 0; y < NUM_PARTICLES_Y; y++) {
 	   		for (int z = 0; z < NUM_PARTICLES_Z; z++) {
 	   			Particle* part = new Particle(initial_pos + Vector3d(x*d*1, y*d*1, -z*d*1));
-
-	   			if (rand() % 100 < 0) {
-					part->rho0 = 917;
-					part->mass = Scene::volume * part->rho0;
-					part->color = Vector3d(0,0,1);
-	   				part->ice = true;
-	   			}
-
    				particles.push_back(part);
 				grid.addParticle(part);
    			}
@@ -87,15 +76,22 @@ void Scene::InitParticles() {
 
 }
 
-void Scene::addParticles (double x, double y, double z, int num) {
+void Scene::addParticles (double x, double y, double z, int num, int button) {
 	for (double i = max(LEFT_WALL, x-d*num); i <= min(RIGHT_WALL, x+d*num); i = i+d) {
 		for (double j = max(BOTTOM_WALL, y-d*num); j <= min(TOP_WALL, y+d*num); j = j+d) {
 			for (double k = max(BACK_WALL, z-d*num); k <= min(FRONT_WALL, z+d*num); k = k+d) {
 
 	   			Particle* part = new Particle(Vector3d(i, j, k));
-				part->rho0 = 2000;
-				part->mass = Scene::volume * part->rho0;
-				part->color = Vector3d(0,1,0);
+	   			if (button == GLUT_RIGHT_BUTTON) {
+					part->rho0 = 2000;
+					part->mass = Scene::volume * part->rho0;
+					part->color = Vector3d(0,1,0);
+				}
+				if (button == GLUT_MIDDLE_BUTTON) {
+					part->rho0 = 500;
+					part->mass = Scene::volume * part->rho0;
+					part->color = Vector3d(0,0,1);	
+				}
    				particles.push_back(part);
 				grid.addParticle(part);
 			}
@@ -117,7 +113,7 @@ void Scene::InitBounds() {
 void Scene::InitObjects() {	
   	// load mesh
   	if (!objmodel_ptr) {
-	    objmodel_ptr = glmReadOBJ((char*)"objects/bunny_40k.obj", 0.9, 0.50, BOTTOM_WALL-0.01, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2 + 0.01);
+	    objmodel_ptr = glmReadOBJ((char*)"objects/bunny_40k.obj", 0.9, 0.0, BOTTOM_WALL-0.01, FRONT_WALL-(FRONT_WALL-BACK_WALL)/2 + 0.01);
 	    
 	    if (!objmodel_ptr)
 	        exit(0);
@@ -325,76 +321,9 @@ void Scene::Render(void)
 		particles[i]->draw();
 	}
 
-	grid.calculateColors();
-
-	//Eigen::PlainObjectBase<> vertices;
-	// Eigen::PlainObjectBase<> faces;
-
-	// Eigen::Matrix<ScalarType, Eigen::Dynamic, 3> vertices;
-	// Eigen::Matrix<ScalarType, Eigen::Dynamic, 3> faces;
-
-	// igl::marching_cubes<ScalarType, ScalarType> (
-	//     &(grid.values),
-	//     &(grid.points),
-	//     (int)grid.size.x(),
-	//     (int)grid.size.y(),
-	//     (int)grid.size.z(),
-	//     &vertices,
-	//     &faces);
-
-
 	if (objmodel_ptr) {
 		glColor3d(1,0.5,0);
 		if (collide_object && render_object)
 			glmDraw(objmodel_ptr, GLM_SMOOTH);
 	}
-
-
-  Eigen::Matrix<ScalarType, Eigen::Dynamic, 3> vertices;
-  Eigen::Matrix<IndexType, Eigen::Dynamic, 3> faces;
-
-  igl::marching_cubes(grid.values, 
-                      grid.points, 
-                      grid.size.x(),
-                      grid.size.y(),
-                      grid.size.z(),
-                      vertices,
-                      faces);
-
-  	// cout << "grid.values: " << grid.values.rows() << endl;
-  	// cout << "grid.points: " << grid.points.rows() << endl;
-  	// cout << "faces.rows: " << faces.rows() << endl;
-    for (int i = 0; i < faces.rows(); i++) {
-    	int v1_ind = faces(i,0);
-    	double v1_x = vertices(v1_ind, 0);
-    	double v1_y = vertices(v1_ind, 1);
-    	double v1_z = vertices(v1_ind, 2);
-    	    	
-    	int v2_ind = faces(i,1);
-    	double v2_x = vertices(v2_ind, 0);
-    	double v2_y = vertices(v2_ind, 1);
-    	double v2_z = vertices(v1_ind, 2);
-
-	    int v3_ind = faces(i,2);
-    	double v3_x = vertices(v3_ind, 0);
-    	double v3_y = vertices(v3_ind, 1);
-    	double v3_z = vertices(v3_ind, 2);
-
-		GLfloat v1[3] = { v1_x, v1_y, v1_z };
-		GLfloat v2[3] = { v2_x, v2_y, v2_z };
-		GLfloat v3[3] = { v3_x, v3_y, v3_z };
-
-
-		// cout << "f: " << v1_ind << " / " << v2_ind << " / " << v3_ind << endl;
-
-		// cout << "v1: " << v1_x << " / " << v1_y << " / " << v1_z << endl;
-		// cout << "v2: " << v2_x << " / " << v2_y << " / " << v2_z << endl;
-		// cout << "v3: " << v3_x << " / " << v3_y << " / " << v3_z << endl;
-
-	    glBegin(GL_TRIANGLES);
-	        glVertex3fv(&v1[0]);
-	        glVertex3fv(&v2[0]);
-	        glVertex3fv(&v3[0]);
-	    glEnd();
-    }
 }

@@ -200,7 +200,7 @@ void mouseEvent (int button, int state, int x, int y) {
         Vector3d d = (p2-p1).normalized();
         Vector3d p = p1 + d*-(-10.5 - p1.z());
 
-        sc->addParticles(p.x(), p.y(), p.z(), 2);
+        sc->addParticles(p.x(), p.y(), p.z(), 2, button);
     }
 }
 

@@ -277,7 +277,7 @@ void Scene::Render(void)
 {
 	if (render_boundary) {
 		// BOTTOM
-		glColor3d(1,1,1);
+		glColor3d(0.5,0.5,0.5);
 		glBegin(GL_QUADS);
 			glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
 			glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
@@ -285,7 +285,7 @@ void Scene::Render(void)
 			glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
 		glEnd();
 		// LEFT
-		glColor3d(1,0,1);
+		glColor3d(0.8,0.8,0.8);
 		glBegin(GL_QUADS);
 			glVertex3f(LEFT_WALL, BOTTOM_WALL, FRONT_WALL);
 			glVertex3f(LEFT_WALL, BOTTOM_WALL, BACK_WALL);
@@ -293,7 +293,7 @@ void Scene::Render(void)
 			glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
 		glEnd();
 		// RIGHT
-		glColor3d(1,1,0);
+		glColor3d(0.8,0.8,0.8);
 		glBegin(GL_QUADS);
 			glVertex3f(RIGHT_WALL, BOTTOM_WALL, FRONT_WALL);
 			glVertex3f(RIGHT_WALL, BOTTOM_WALL, BACK_WALL);
@@ -309,7 +309,7 @@ void Scene::Render(void)
 			glVertex3f(LEFT_WALL, TOP_WALL, BACK_WALL);
 		glEnd();
 		// TOP
-		glColor3d(0,0,1);
+		glColor3d(0.8,0.8,0.8);
 		glBegin(GL_QUADS);
 			glVertex3f(LEFT_WALL, TOP_WALL, FRONT_WALL);
 			glVertex3f(RIGHT_WALL, TOP_WALL, FRONT_WALL);
